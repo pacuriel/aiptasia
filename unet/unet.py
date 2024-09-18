@@ -21,7 +21,7 @@ class DoubleConv(nn.Module):
 #OG U-Net class that inherits from nn.Module
 class UNet(nn.Module):
     #class constructor
-    def __init__(self, in_channels=3, out_channels=2, feature_sizes=[64, 128, 256, 512]):
+    def __init__(self, in_channels=3, out_channels=2, feature_sizes=[64, 128, 256, 512, 1024]):
         #note: kernel_size = filter_size
         super(UNet, self).__init__()
         
@@ -35,36 +35,56 @@ class UNet(nn.Module):
 
         #setting double convs for contracting path
         for feature_size in feature_sizes:
-            self.contract.append(DoubleConv(in_channels=in_channels, out_channels=feature_size))
+            self.contract.append(DoubleConv(in_channels=self.in_channels, out_channels=feature_size))
+            self.in_channels = feature_size
+
+
 
         #setting transposed convs (to upsample) and double convs for expanding path 
         for feature_size in reversed(feature_sizes):
             self.expand.append(
-                nn.ConvTranspose2d(in_channels=2*feature_size, out_channels=feature_size, kernel_size=2, stride=2)
+                nn.ConvTranspose2d(in_channels=feature_size, out_channels=(feature_size // 2), kernel_size=2, stride=2) #transposed conv
             )#append
-            self.expand.append(DoubleConv(in_channels=2*feature_size, out_channels=feature_size))
+            self.expand.append(DoubleConv(in_channels=feature_size, out_channels=(feature_size // 2))) #double conv
+
+            #if statement to ensure correct dimensions given feature size array
+            if len(self.expand) == 8:
+                break
 
     #function to perform forward pass of UNet (Note: forward fcn. is inherited from nn.Module) 
     def forward(self, x): 
         skip_connections = [] #list to store skip connections
 
         #contracting path (downsample)
-        i = 0#counter for sanity check
         for downsample in self.contract:
             x = downsample(x) #applying double conv and ReLU
-            skip_connections.append(x) #storing output for skip connections
-            x = self.pool(x) #applying max pooling
-            i += 1
-            if i == 1:
-                break #sanity check
+            #storing skip connections and applying max pooling
+            if len(skip_connections) < 4:
+                skip_connections.append(x) #storing output for skip connections
+                x = self.pool(x) #applying max pooling
 
         #expansive path (upsample)
-        
+        for i in range(len(self.expand)):
+            x = self.expand[i](x)
+            #TODO: confirm the skip connection is being cropped correctly
+            #TODO: concatenate skip connection with x (above)
+             
+            # skip = skip_connections[3 - i][:, :, :56, :56] #getting cropped version of skip connection 
+
+            # torch.cat(skip, x)
+            breakpoint()
+
+        #final layer
+
+
+        ###OG U-Net doesn't have batch norm
+        ###use padding=1 in 2D conv
 
         return x
 
 if __name__ == "__main__":
     #do stuff
+
     img_size = 572
     num_samples = 10
     num_channels = 3
