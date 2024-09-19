@@ -38,8 +38,6 @@ class UNet(nn.Module):
             self.contract.append(DoubleConv(in_channels=self.in_channels, out_channels=feature_size))
             self.in_channels = feature_size
 
-
-
         #setting transposed convs (to upsample) and double convs for expanding path 
         for feature_size in reversed(feature_sizes):
             self.expand.append(
@@ -50,6 +48,8 @@ class UNet(nn.Module):
             #if statement to ensure correct dimensions given feature size array
             if len(self.expand) == 8:
                 break
+        
+        self.final_layer = nn.Conv2d(in_channels=feature_sizes[0], out_channels=2, kernel_size=1, stride=1) #final layer of U-Net
 
     #function to perform forward pass of UNet (Note: forward fcn. is inherited from nn.Module) 
     def forward(self, x): 
@@ -58,6 +58,7 @@ class UNet(nn.Module):
         #contracting path (downsample)
         for downsample in self.contract:
             x = downsample(x) #applying double conv and ReLU
+            
             #storing skip connections and applying max pooling
             if len(skip_connections) < 4:
                 skip_connections.append(x) #storing output for skip connections
@@ -67,28 +68,21 @@ class UNet(nn.Module):
         for i in range(len(self.expand)):
             x = self.expand[i](x)
             #TODO: confirm the skip connection is being cropped correctly
-            #TODO: concatenate skip connection with x (above)
-             
-            # skip = skip_connections[3 - i][:, :, :56, :56] #getting cropped version of skip connection 
-
-            # torch.cat(skip, x)
-            breakpoint()
+            if (i % 2) == 0:
+                skip = skip_connections[3 - (i // 2)][:, :x.shape[1], :x.shape[2]] #cropped skip connection
+                x = torch.cat(tensors=(skip, x))
 
         #final layer
-
-
-        ###OG U-Net doesn't have batch norm
-        ###use padding=1 in 2D conv
+        x = self.final_layer(x)
 
         return x
 
 if __name__ == "__main__":
     #do stuff
-
     img_size = 572
     num_samples = 10
     num_channels = 3
-    x = torch.randn((num_samples, num_channels, img_size, img_size)) #dummy variable to represent RGB images
+    x = torch.randn((num_channels, img_size, img_size)) #dummy variable to represent RGB images
     print(x.shape)
 
     model = UNet(in_channels=3, out_channels=2) #initializing a UNet object
