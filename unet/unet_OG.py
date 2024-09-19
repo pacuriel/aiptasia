@@ -1,3 +1,8 @@
+"""
+Implementation of original U-Net paper
+September 2024
+"""
+
 import torch
 import torch.nn as nn
 
@@ -9,14 +14,14 @@ class DoubleConv(nn.Module):
 
         #nn.Sequential object to perform double convolution
         self.convolve = nn.Sequential(
-            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1),
-            nn.ReLU(inplace=True)
+            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1), #2D convolution
+            nn.ReLU(inplace=True), #activation function
+            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1), #2D convolution
+            nn.ReLU(inplace=True) #activation function
         )
 
     def forward(self, x):
-        return self.convolve(x) #returning double convolution
+        return self.convolve(x) #returning double convolution w/ activation functions
 
 #OG U-Net class that inherits from nn.Module
 class UNet(nn.Module):
