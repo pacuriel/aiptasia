@@ -14,9 +14,9 @@ class DoubleConv(nn.Module):
 
         #nn.Sequential object to perform double convolution
         self.convolve = nn.Sequential(
-            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1), #2D convolution
+            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1), #2D convolution
             nn.ReLU(inplace=True), #activation function
-            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1), #2D convolution
+            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1), #2D convolution
             nn.ReLU(inplace=True) #activation function
         )
 
@@ -54,7 +54,8 @@ class UNet(nn.Module):
             if len(self.expand) == 8:
                 break
         
-        self.final_layer = nn.Conv2d(in_channels=feature_sizes[0], out_channels=2, kernel_size=1, stride=1) #final layer of U-Net
+        #final layer
+        self.final_layer = nn.Conv2d(in_channels=feature_sizes[0], out_channels=self.out_channels, kernel_size=1, stride=1) #final layer of U-Net
 
     #function to perform forward pass of UNet (Note: forward fcn. is inherited from nn.Module) 
     def forward(self, x): 
@@ -84,7 +85,7 @@ class UNet(nn.Module):
 
 if __name__ == "__main__":
     #do stuff
-    img_size = 572
+    img_size = 256
     num_samples = 10
     num_channels = 3
     x = torch.randn((num_channels, img_size, img_size)) #dummy variable to represent RGB images
