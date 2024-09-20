@@ -1,7 +1,7 @@
 """
 Main file to test original U-Net model on water body dataset
 Pablo A. Curiel
-September 2024
+October 2024
 """
 import platform
 import os
@@ -52,7 +52,7 @@ def main():
     dataset = ImageDataset(image_dir=image_dir, mask_dir=mask_dir, transform=None, target_transform=None) #dataset object
     
     #setting train/test splits
-    train_split = 0.1 #percentage of data to train on
+    train_split = 0.8 #percentage of data to train on
     num_train = int(num_samples * train_split) #number of train samples 
     num_test = num_samples - num_train #number of test samples
 
