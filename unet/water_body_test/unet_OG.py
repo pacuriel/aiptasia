@@ -84,7 +84,7 @@ class UNet(nn.Module):
 
 if __name__ == "__main__":
     #do stuff
-    img_size = 256
+    img_size = 572
     # num_samples = 10
     num_channels = 3
     x = torch.randn((num_channels, img_size, img_size)) #dummy variable to represent RGB images

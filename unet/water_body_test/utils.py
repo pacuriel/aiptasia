@@ -27,10 +27,14 @@ def makeImageSquare(img: np.ndarray, size: int, padding_type=cv2.BORDER_REFLECT)
         padding = (size - width) // 2 #size of padding to use on width
         #adding padding to width
         square = cv2.copyMakeBorder(src=img, top=0, bottom=0, left=padding, right=padding, borderType=padding_type)        
-
+        
     elif max_dim_idx == 1: #width == size -> resize height
         padding = (size - height) // 2 #size of padding to use on height
         #adding padding to height
         square = cv2.copyMakeBorder(src=img, top=padding, bottom=padding, left=0, right=0, borderType=padding_type)        
+
+    #confirming image is square (sometimes off by one)
+    if square.shape[0] != square.shape[1]:
+        square = cv2.resize(square, (size, size)) #resizing to square if not already
 
     return square
