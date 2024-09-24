@@ -6,6 +6,7 @@ September 2024
 import platform
 import os
 import torch.nn as nn
+import torch
 from tqdm import tqdm
 
 from unet_OG import UNet #importing OG U-Net Model
@@ -14,7 +15,6 @@ from train import Train
 
 #setting global variables
 device = "cuda" if torch.cuda.is_available() else "cpu" #device for pytorch
-
 
 def main(): 
     input_size = 256 #size of square image input for U-Net
