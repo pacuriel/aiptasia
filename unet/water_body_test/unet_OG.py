@@ -76,7 +76,6 @@ class UNet(nn.Module):
         #expansive path (upsample)
         for i in range(len(self.expand)):
             x = self.expand[i](x)
-            #TODO: confirm the skip connection is being cropped correctly
             if (i % 2) == 0:
                 skip = skip_connections[(i // 2)] #cropped skip connection
                 if (x.shape != skip.shape): #checking if dimensions match
@@ -90,15 +89,15 @@ class UNet(nn.Module):
 
         return x
 
-if __name__ == "__main__":
-    #do stuff
-    img_size = 572
-    num_samples = 10
-    num_channels = 3
-    x = torch.randn((num_samples, num_channels, img_size, img_size)) #dummy variable to represent RGB images
-    print(x.shape)
+# if __name__ == "__main__":
+#     #do stuff
+#     img_size = 572
+#     num_samples = 10
+#     num_channels = 3
+#     x = torch.randn((num_samples, num_channels, img_size, img_size)) #dummy variable to represent RGB images
+#     print(x.shape)
 
-    model = UNet(in_channels=3, out_channels=2) #initializing a UNet object
-    preds = model(x)
-    print(preds.shape)
-    print(model)
+#     model = UNet(in_channels=3, out_channels=2) #initializing a UNet object
+#     preds = model(x)
+#     print(preds.shape)
+#     # print(model)
