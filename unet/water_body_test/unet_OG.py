@@ -27,7 +27,7 @@ class DoubleConv(nn.Module):
 #OG U-Net class that inherits from nn.Module
 class UNet(nn.Module):
     #class constructor
-    def __init__(self, in_channels=3, out_channels=2, feature_sizes=[64, 128, 256, 512, 1024]):
+    def __init__(self, in_channels=3, out_channels=1, feature_sizes=[64, 128, 256, 512, 1024]):
         #note: kernel_size = filter_size
         super(UNet, self).__init__()
         
@@ -55,7 +55,7 @@ class UNet(nn.Module):
             if len(self.expand) == 8:
                 break
         
-        self.final_layer = nn.Conv2d(in_channels=feature_sizes[0], out_channels=2, kernel_size=1, stride=1) #final layer of U-Net
+        self.final_layer = nn.Conv2d(in_channels=feature_sizes[0], out_channels=self.out_channels, kernel_size=1, stride=1) #final layer of U-Net
 
     #function to perform forward pass of UNet (Note: forward fcn. is inherited from nn.Module) 
     def forward(self, x): 
@@ -89,15 +89,16 @@ class UNet(nn.Module):
 
         return x
 
-# if __name__ == "__main__":
-#     #do stuff
-#     img_size = 572
-#     num_samples = 10
-#     num_channels = 3
-#     x = torch.randn((num_samples, num_channels, img_size, img_size)) #dummy variable to represent RGB images
-#     print(x.shape)
+if __name__ == "__main__":
+    #do stuff
+    img_size = 572
+    num_samples = 10
+    num_channels = 3
+    x = torch.randn((num_samples, num_channels, img_size, img_size)) #dummy variable to represent RGB images
+    print(x.shape)
 
-#     model = UNet(in_channels=3, out_channels=2) #initializing a UNet object
-#     preds = model(x)
-#     print(preds.shape)
-#     # print(model)
+    out_channels = 1 #for binary mask
+    model = UNet(in_channels=3, out_channels=out_channels) #initializing a UNet object
+    preds = model(x)
+    print(preds.shape)
+    # print(model)
