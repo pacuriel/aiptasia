@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import math
 
 #function to resize (the longest side of) an image given: an image, the desired size
 def resizeImage(img: np.ndarray, size: int) -> np.ndarray:
@@ -38,3 +39,52 @@ def makeImageSquare(img: np.ndarray, size: int, padding_type=cv2.BORDER_REFLECT)
         square = cv2.resize(square, (size, size)) #resizing to square if not already
 
     return square
+
+#function to obtain a list of tiles given an input image and size
+def tileImage(img: np.ndarray, tile_size: int = 572) -> list[np.ndarray]:
+    """
+    Input: 
+    - img: image of shape (height, width, channels)
+    - tile_size: size of tiles
+
+    Output:
+    - List of tiles (images): 
+    """
+    tiles = [] #list of tiles
+
+    #image is smaller than given tile size
+    if img.shape[0] < tile_size or img.shape[1] < tile_size: 
+        print("Image size is smaller than tile size")
+        return False
+
+    #getting number of tiles along height/width
+    tiles_height = math.floor(img.shape[0] / tile_size)
+    if (img.shape[0] % tile_size) != 0: tiles_height += 1 #incrementing if not divisble
+    tiles_width = math.floor(img.shape[1] / tile_size)
+    if (img.shape[1] % tile_size) != 0: tiles_width += 1 #incrementing if not divisble
+
+    num_tiles = tiles_height * tiles_width #total number of tiles
+
+    print(num_tiles, tiles_height, tiles_width)
+    
+    for h_tile in range(tiles_height):
+        for w_tile in range(tiles_width):
+            tile_top = h_tile*tile_size
+            tile_bottom = (h_tile + 1)*tile_size
+            tile_left = w_tile*tile_size
+            tile_right = (w_tile + 1)*tile_size
+
+            #check to avoid tile doesn't surpass image height
+            if tile_bottom > img.shape[0]:
+                tile_bottom = img.shape[0]
+                tile_top = tile_bottom - tile_size
+            
+            #check to avoid tile doesn't surpass image width
+            if tile_right > img.shape[1]: 
+                tile_right = img.shape[1]
+                tile_left = tile_right - tile_size
+            
+            tile = img[tile_top:tile_bottom, tile_left:tile_right, :]
+            tiles.append(tile)
+ 
+    return tiles

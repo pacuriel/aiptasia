@@ -12,6 +12,8 @@ import torch
 import torchvision.transforms as T
 import glob
 
+
+
 if __name__ == "__main__":
     #getting directories with data
     if platform.system() == "Linux":
