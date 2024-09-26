@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, utils
+import torchvision.transforms.functional as TF
 import cv2
 
 #class representing the water body data that inherits from torch.utils.data.Dataset
@@ -33,9 +33,16 @@ class WaterBodyDataset(Dataset):
         image_path = os.path.join(self.image_dir, self.file_names[index])
         mask_path = os.path.join(self.mask_dir, self.file_names[index])
         
-        #reading in image/mask
-        image = cv2.imread(image_path) 
-        mask = cv2.imread(mask_path)
+        #reading in image
+        image = cv2.imread(image_path)
+        image = TF.to_tensor(pic=image)
+
+        #reading in mask and processing for single channel gray-scale 
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        
+        #converting mask to binary 0-1
+        (thresh, mask) = cv2.threshold(mask, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        mask[mask == 255] = 0 
 
         #applying transformations (converting to tensor, etc.)
         if self.transform:

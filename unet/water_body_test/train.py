@@ -15,7 +15,7 @@ num_epochs = 10 #number of epochs (full passes over training data) to train for
 
 #class to train U-Net
 class Train:
-    def __init__(self, model, loss, optimizer, dataset):
+    def __init__(self, model, loss, optimizer, scheduler):
         """
         Input: 
         - model: class inheriting from nn.Module
@@ -26,7 +26,7 @@ class Train:
         self.model = model
         self.loss = loss
         self.optimizer = optimizer
-        self.dataset = dataset
+        # self.dataset = dataset
 
     #function to train U-Net
     def train(self):
