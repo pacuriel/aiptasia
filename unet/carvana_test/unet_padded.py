@@ -15,11 +15,11 @@ class DoubleConv(nn.Module):
 
         #nn.Sequential object to perform double convolution
         self.convolve = nn.Sequential(
-            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1, bias=False), #2D padded convolution
-            nn.BatchNorm2d(num_features=out_channels),
+            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1),#, bias=False), #2D padded convolution
+            # nn.BatchNorm2d(num_features=out_channels),
             nn.ReLU(inplace=True), #activation function
-            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1, bias=False), #2D padded convolution
-            nn.BatchNorm2d(num_features=out_channels),
+            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=1),#, bias=False), #2D padded convolution
+            # nn.BatchNorm2d(num_features=out_channels),
             nn.ReLU(inplace=True) #activation function
         )
 
@@ -41,7 +41,7 @@ class UNet(nn.Module):
         self.out_channels = out_channels
         self.feature_sizes = feature_sizes
 
-        #setting double convs for contracting path
+        #setting double convs for contracting path (downsampling)
         for feature_size in feature_sizes:
             self.contract.append(DoubleConv(in_channels=self.in_channels, out_channels=feature_size))
             self.in_channels = feature_size
@@ -65,45 +65,40 @@ class UNet(nn.Module):
 
         #contracting path (downsample)
         for downsample in self.contract:
-            breakpoint()
             x = downsample(x) #applying double conv and ReLU
             #storing skip connections and applying max pooling
             if len(skip_connections) < 4:
                 skip_connections.append(x) #storing output for skip connections
                 x = self.pool(x) #applying max pooling
-        breakpoint()
         #reversing skip connections to index easier
         skip_connections = list(reversed(skip_connections))
 
         #expansive path (upsample)
         for i in range(len(self.expand)):
             x = self.expand[i](x)
-            breakpoint()
             #TODO: confirm the skip connection is being cropped correctly
             if (i % 2) == 0:
-                breakpoint()
                 skip = skip_connections[(i // 2)] #skip connection
                 if x.shape != skip.shape: #checking if dimensions match
                     skip = CenterCrop(size=(x.shape[-2], x.shape[-1]))(skip) #center cropping skip connection to concat.
                 
                 x = torch.cat(tensors=(skip, x), dim=1) #concatenating skip connection to up-conv
-                breakpoint()
 
         #final layer
         x = self.final_layer(x)
-        breakpoint()
 
         return x
 
 if __name__ == "__main__":
     #do stuff
-    img_size = 572
+    img_size = 256
     num_samples = 10
-    num_channels = 3
-    x = torch.randn((num_samples, num_channels, img_size, img_size)) #dummy variable to represent RGB images
+    in_channels = 3
+    out_channels = 1
+    x = torch.randn((num_samples, in_channels, img_size, img_size)) #dummy variable to represent RGB images
     print(x.shape)
 
-    model = UNet(in_channels=3, out_channels=2) #initializing a UNet object
+    model = UNet(in_channels=in_channels, out_channels=out_channels) #initializing a UNet object
     preds = model(x)
     print(preds.shape)
     # print(model)

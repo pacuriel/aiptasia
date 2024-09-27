@@ -11,7 +11,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from unet_OG import UNet #importing OG U-Net Model
+# from unet_OG import UNet #importing OG U-Net Model
+from unet_padded import UNet
 from data import ImageDataset #dataset class
 from train import Train
 
@@ -21,10 +22,9 @@ RANDOM_SEED = 42 #random seed for testing (not so random i guess?)
 #TODO: don't hardcode hyperparams
 in_channels = 3 #three channels for RGB images
 out_channels = 1
-# num_class = 2
 learning_rate = 0.001 #learning rate used by optimizer
-batch_size = 8 #size of each batch to train on
-num_epochs = 10 #number of epochs (full passes over training data) to train for 
+batch_size = 16 #size of each batch to train on
+# num_epochs = 3 #number of epochs (full passes over training data) to train for 
 
 #setting global variables
 device = "cuda" if torch.cuda.is_available() else "cpu" #device for pytorch
@@ -39,8 +39,8 @@ def storeDirs(input_size: int = None, output_size: int = None) -> tuple[str, str
         image_dir = root_dir + "Images"
         mask_dir = root_dir + "Masks"
     elif platform.system() == "Windows": 
-        img_path = "C:\\Users\\giant\\Desktop\\aiptasia\\data\\carvana_data\\subset_tiles"
-        mask_path = "C:\\Users\\giant\\Desktop\\aiptasia\\data\\carvana_data\\subset_masks_tiles"
+        image_dir = "C:\\Users\\giant\\Desktop\\aiptasia\\data\\carvana_data\\subset_tiles"
+        mask_dir = "C:\\Users\\giant\\Desktop\\aiptasia\\data\\carvana_data\\subset_masks_tiles"
 
     return image_dir, mask_dir
 
@@ -52,8 +52,8 @@ def main():
     dataset = ImageDataset(image_dir=image_dir, mask_dir=mask_dir, transform=None, target_transform=None) #dataset object
 
     #setting train/test splits
-    train_split = 0.8 #percentage of data to train on
-    num_train = int(num_samples * 0.8) #number of train samples 
+    train_split = 0.1 #percentage of data to train on
+    num_train = int(num_samples * train_split) #number of train samples 
     num_test = num_samples - num_train #number of test samples
 
     #splitting data
@@ -67,14 +67,13 @@ def main():
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True)
 
     model = UNet(in_channels=in_channels, out_channels=out_channels).to(device) #U-Net model
-    loss_fcn = nn.CrossEntropyLoss() #loss function
+    # loss_fcn = nn.CrossEntropyLoss() #loss function
+    loss_fcn = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate) #parameter optimizer
 
-    breakpoint()
-
     #calling train class to begin training model
-    # trainer = Train(model=model, loss=loss_fcn, optimizer=optimizer, data_loader=train_loader)
-    # trainer.train()
+    trainer = Train(model=model, loss=loss_fcn, optimizer=optimizer, data_loader=train_loader)
+    trainer.train()
 
 if __name__ == "__main__": 
     main()
