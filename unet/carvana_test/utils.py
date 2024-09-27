@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import cv2
 
 #function to resize (the longest side of) an image given: an image, the desired size
@@ -38,3 +39,72 @@ def makeImageSquare(img: np.ndarray, size: int, padding_type=cv2.BORDER_REFLECT)
         square = cv2.resize(square, (size, size)) #resizing to square if not already
 
     return square
+
+#function to obtain a list of tiles given an input image and size
+def tileImage(img: np.ndarray, tile_size: int = 256, save_tiles: bool = False, tile_dir: str = None) -> list[np.ndarray]:
+    """
+    Input: 
+    - img: image of shape (height, width, channels)
+    - tile_size: size of tiles
+
+    Output:
+    - List of tiles (images): 
+    """
+    tiles = [] #list of tiles
+
+    #image is smaller than given tile size
+    if img.shape[0] < tile_size or img.shape[1] < tile_size: 
+        print("Image size is smaller than tile size")
+        return False
+
+    #getting number of tiles along height/width
+    tiles_height = math.floor(img.shape[0] / tile_size)
+    if (img.shape[0] % tile_size) != 0: tiles_height += 1 #incrementing if not divisble
+    tiles_width = math.floor(img.shape[1] / tile_size)
+    if (img.shape[1] % tile_size) != 0: tiles_width += 1 #incrementing if not divisble
+
+    num_tiles = tiles_height * tiles_width #total number of tiles
+
+    i = 0
+    for h_tile in range(tiles_height):
+        for w_tile in range(tiles_width):
+            tile_top = h_tile*tile_size
+            tile_bottom = (h_tile + 1)*tile_size
+            tile_left = w_tile*tile_size
+            tile_right = (w_tile + 1)*tile_size
+
+            #check to avoid tile doesn't surpass image height
+            if tile_bottom > img.shape[0]:
+                tile_bottom = img.shape[0]
+                tile_top = tile_bottom - tile_size
+            
+            #check to avoid tile doesn't surpass image width
+            if tile_right > img.shape[1]: 
+                tile_right = img.shape[1]
+                tile_left = tile_right - tile_size
+            
+            tile = img[tile_top:tile_bottom, tile_left:tile_right]
+            tiles.append(tile)
+
+            if save_tiles:
+                cv2.imwrite(tile_dir[:-4] + f"_{i}" + ".jpg", tile)
+            
+            i += 1
+    
+    return tiles
+
+#function to pad an image such that its dimensions are divisible by a given tile size
+def padImage(img: np.ndarray, tile_size: int = 256) -> np.ndarray:
+    H, W = img.shape[:2] #height/width of original image
+
+    H_pad = 0
+    if H % tile_size != 0: 
+        H_pad = (tile_size*math.ceil(H / tile_size) - H) // 2
+
+    W_pad = 0
+    if W % tile_size != 0:
+        W_pad = (tile_size*math.ceil(W / tile_size) - W) // 2
+
+    img = cv2.copyMakeBorder(src=img, top=H_pad, bottom=H_pad, left=W_pad, right=W_pad, borderType=cv2.BORDER_REFLECT)
+
+    return img

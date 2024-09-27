@@ -15,7 +15,7 @@ num_epochs = 10 #number of epochs (full passes over training data) to train for
 
 #class to train U-Net
 class Train:
-    def __init__(self, model, loss, optimizer, scheduler):
+    def __init__(self, model, loss, optimizer, data_loader, scheduler):
         """
         Input: 
         - model: class inheriting from nn.Module
@@ -24,30 +24,25 @@ class Train:
         - dataset: 
         """
         self.model = model
-        self.loss = loss
+        self.loss_fcn = loss
         self.optimizer = optimizer
+        self.data_loader= data_loader
         # self.dataset = dataset
 
     #function to train U-Net
     def train(self):
-        #for loop to train
-        for epoch in (tqdm(range(num_epochs))):
-            #loop over each batch of data
-            for batch_idx, (data, targets) in enumerate(self.dataset):
-                if batch_idx % 50 == 0:
-                    print(f"Training on batch {batch_idx}") #sanity check
-            
-                #move data/targets to device
-                data = data.to(device=device)
-                targets = targets.to(device=device)
+        #looping for preset number of epochs
+        for epoch in range(num_epochs):
+            print(f"*** Current epoch: {epoch + 1}") #sanity check
+            #looping over batches of data
+            for batch_idx, (img_batch, mask_batch) in enumerate(tqdm(self.data_loader)):
+                img_batch = img_batch.to(device) #batch of images
+                gt_masks = mask_batch.float().unsqueeze(1).to(device) #batch of masks (unsqueeze to add single channel dimension)
 
-                scores = self.model(data) #forward pass
-                loss = self.loss(scores, targets) #calculating loss on one batch of data
+                pred_masks = self.model(img_batch) #forward pass
+                loss = self.loss_fcn(pred_masks, gt_masks) #calculating loss
 
                 #backward pass (backprop)
-                self.optimizer.zero_grad() #set gradients to zero initially
-                loss.backward() #update weights depending on gradients computed above
-
-                #gradient descent (or ADAM step)
-                self.optimizer.step()
-        
+                self.optimizer.zero_grad() #initializing gradients to zero
+                loss.backward() #update weights depending on gradients computer above
+                self.optimizer.step() #gradient descent (or ADAM step)

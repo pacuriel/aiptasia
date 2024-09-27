@@ -7,8 +7,8 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms.functional as TF
 import cv2
 
-#class representing the water body data that inherits from torch.utils.data.Dataset
-class WaterBodyDataset(Dataset):
+#class representing the data that inherits from torch.utils.data.Dataset
+class ImageDataset(Dataset):
     def __init__(self, image_dir: str, mask_dir: str, transform=None, target_transform=None):
         """
         Input: 

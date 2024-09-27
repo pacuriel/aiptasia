@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 
-class WaterBodyDataLoader():
+class ImageDataLoader():
     def __init__(self, dataset):
         self.dataset = dataset
 

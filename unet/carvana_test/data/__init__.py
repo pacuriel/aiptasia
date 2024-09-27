@@ -1,2 +1,2 @@
-from .dataset import WaterBodyDataset
-from .data_loader import WaterBodyDataLoader
+from .dataset import ImageDataset
+from .data_loader import ImageDataLoader
