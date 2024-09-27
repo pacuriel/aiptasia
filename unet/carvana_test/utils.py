@@ -105,6 +105,17 @@ def padImage(img: np.ndarray, tile_size: int = 256) -> np.ndarray:
     if W % tile_size != 0:
         W_pad = (tile_size*math.ceil(W / tile_size) - W) // 2
 
-    img = cv2.copyMakeBorder(src=img, top=H_pad, bottom=H_pad, left=W_pad, right=W_pad, borderType=cv2.BORDER_REFLECT)
+    if H_pad != 0 or W_pad != 0:
+        img = cv2.copyMakeBorder(src=img, top=H_pad, bottom=H_pad, left=W_pad, right=W_pad, borderType=cv2.BORDER_REFLECT)
 
     return img
+
+#function to stitch an image back together
+def stitchImage(tiles: list[np.ndarray], original_img_path: str) -> np.ndarray:
+    #TODO
+    pass
+
+#function to unpad an image to revert back to original dimensions
+def unpadImage(img: np.ndarray, original_img_path: str) -> np.ndarray:
+    #TODO
+    pass
