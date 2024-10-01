@@ -35,9 +35,9 @@ device = "cuda" if torch.cuda.is_available() else "cpu" #device for pytorch
 def storeDirs(input_size: int = None, output_size: int = None) -> tuple[str, str]:
     #storing image and mask directories
     if platform.system() == "Linux":
-        root_dir = "/home/pcuriel/data/aiptasia/image_data/water_body_data/"
-        image_dir = root_dir + "Images"
-        mask_dir = root_dir + "Masks"
+        root_dir = "/home/pcuriel/data/aiptasia/image_data/carvana_data/"
+        image_dir = root_dir + "subset_tiles"
+        mask_dir = root_dir + "subset_masks_tiles"
     elif platform.system() == "Windows": 
         image_dir = "C:\\Users\\giant\\Desktop\\aiptasia\\data\\carvana_data\\subset_tiles"
         mask_dir = "C:\\Users\\giant\\Desktop\\aiptasia\\data\\carvana_data\\subset_masks_tiles"
@@ -47,10 +47,10 @@ def storeDirs(input_size: int = None, output_size: int = None) -> tuple[str, str
 def main(): 
     image_dir, mask_dir = storeDirs()
     num_samples = len(os.listdir(image_dir))
-
+    
     #TODO: determine what transforms to apply
     dataset = ImageDataset(image_dir=image_dir, mask_dir=mask_dir, transform=None, target_transform=None) #dataset object
-
+    
     #setting train/test splits
     train_split = 0.1 #percentage of data to train on
     num_train = int(num_samples * train_split) #number of train samples 
@@ -73,6 +73,7 @@ def main():
 
     #calling train class to begin training model
     trainer = Train(model=model, loss=loss_fcn, optimizer=optimizer, data_loader=train_loader)
+    breakpoint() #sanity check
     trainer.train()
 
 if __name__ == "__main__": 
