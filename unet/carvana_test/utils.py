@@ -1,6 +1,8 @@
 import numpy as np
 import math
 import cv2
+import torch
+import torch.nn as nn
 
 #function to resize (the longest side of) an image given: an image, the desired size
 def resizeImage(img: np.ndarray, size: int) -> np.ndarray:
@@ -117,5 +119,14 @@ def stitchImage(tiles: list[np.ndarray], original_img_path: str) -> np.ndarray:
 
 #function to unpad an image to revert back to original dimensions
 def unpadImage(img: np.ndarray, original_img_path: str) -> np.ndarray:
+    #TODO
+    pass
+
+#function to save a model
+def saveModel(model, path: str) -> None:
+    torch.save(model.state_dict(), path) #saving model using pytorch
+
+#functio to load a model
+def loadModel(path: str):
     #TODO
     pass
