@@ -22,9 +22,9 @@ RANDOM_SEED = 42 #random seed for testing (not so random i guess?)
 #TODO: don't hardcode hyperparams
 in_channels = 3 #three channels for RGB images
 out_channels = 1
-learning_rate = 0.001 #learning rate used by optimizer
+learning_rate = 1e-4 #learning rate used by optimizer
 batch_size = 16 #size of each batch to train on
-# num_epochs = 3 #number of epochs (full passes over training data) to train for 
+num_epochs = 10 #number of epochs (full passes over training data) to train for 
 
 #setting global variables
 device = "cuda" if torch.cuda.is_available() else "cpu" #device for pytorch
@@ -45,6 +45,8 @@ def storeDirs(input_size: int = None, output_size: int = None) -> tuple[str, str
     return image_dir, mask_dir
 
 def main(): 
+    train_mode = True #tells model whether update parameters
+
     image_dir, mask_dir = storeDirs()
     num_samples = len(os.listdir(image_dir))
     
@@ -67,14 +69,21 @@ def main():
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True)
 
     model = UNet(in_channels=in_channels, out_channels=out_channels).to(device) #U-Net model
-    # loss_fcn = nn.CrossEntropyLoss() #loss function
-    loss_fcn = nn.BCEWithLogitsLoss()
+    # loss_fcn = nn.BCEWithLogitsLoss() #loss function (combination of Sigmoid layer and BCELoss; similar to original paper) 
+    loss_fcn = nn.BCEWithLogitsLoss() #loss function (combination of Sigmoid layer and BCELoss; similar to original paper) 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate) #parameter optimizer
 
     #calling train class to begin training model
-    trainer = Train(model=model, loss=loss_fcn, optimizer=optimizer, data_loader=train_loader)
+    trainer = Train(model=model, 
+                    loss=loss_fcn, 
+                    optimizer=optimizer, 
+                    data_loader=train_loader,
+                    num_epochs=num_epochs,
+                    train_mode=train_mode)
     breakpoint() #sanity check
-    trainer.train()
+    trainer.train() #calling function to train model
+
+    #TODO: evaluate model on test set
 
 if __name__ == "__main__": 
     main()

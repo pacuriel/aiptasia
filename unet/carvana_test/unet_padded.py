@@ -1,6 +1,6 @@
 """
-Implementation of original U-Net paper
-September 2024
+Implementation of U-Net paper
+October 2024
 """
 
 import torch

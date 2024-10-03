@@ -7,14 +7,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #TODO: don't hardcode hyperparams
 #setting hyperparameters as global variables
-in_channels = 3 #three channels for RGB images
-num_class = 2
-learning_rate = 0.001
-num_epochs = 3 #number of epochs (full passes over training data) to train for 
+# in_channels = 3 #three channels for RGB images
+# num_class = 2
+# learning_rate = 0.001
+# num_epochs = 3 #number of epochs (full passes over training data) to train for 
 
 #class to train U-Net
 class Train:
-    def __init__(self, model, loss, optimizer, data_loader):
+    def __init__(self, model, loss, optimizer, data_loader, num_epochs: int, train_mode: bool = True):
         """
         Input: 
         - model: class inheriting from nn.Module
@@ -27,13 +27,17 @@ class Train:
         self.optimizer = optimizer
         self.data_loader= data_loader
         # self.dataset = dataset
+        self.num_epochs = num_epochs
 
     #function to train U-Net
     def train(self):
         print("*** Starting training!")
+        
+        best_loss = 1e3 #used to determine which model to save
+
         #looping for preset number of epochs
-        for epoch in range(num_epochs):
-            print(f"*** Current epoch: {epoch + 1}") #sanity check
+        for epoch in range(self.num_epochs):
+            print(f"*** Current epoch: {epoch + 1} / {self.num_epochs}") #sanity check
 
             epoch_loss = 0
             loop = tqdm(self.data_loader)
@@ -55,5 +59,10 @@ class Train:
 
                 loop.set_postfix(loss=(epoch_loss / len(self.data_loader))) #updating tqdm bar to show loss 
 
-            epoch_loss /= len(self.data_loader)
-            print(f"Epoch: {epoch + 1} / {num_epochs} \t Loss: {epoch_loss}\n")
+            epoch_loss /= len(self.data_loader) #averaging loss by batch size
+
+            if epoch_loss < best_loss: #if current loss is less than best loss
+                best_loss = epoch_loss #updating best loss
+                #TODO: save current model checkpoint with experiment/run ID in filename
+
+            print(f"Epoch: {epoch + 1} / {self.num_epochs} \t Loss: {epoch_loss} \t Best Loss: {best_loss}\n")
