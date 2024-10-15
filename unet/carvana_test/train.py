@@ -1,6 +1,9 @@
 import torch
 import torch.nn
 from tqdm import tqdm
+from datetime import datetime
+import os
+import time
 
 #set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -28,19 +31,24 @@ class Train:
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.num_epochs = num_epochs
+        
+        self.exp_id = datetime.now().strftime("%d-%b-%Y_%H%M_%S") #setting experiment id to current date/time
+        self.save_model_path = "experiments/best_models" #directory to save best models (in terms of min. loss)
 
     #function to train U-Net
     def train(self):
         print("*** Starting training!")
         
         best_loss = 1e3 #used to determine which model to save
+        
+        start_time = time.time()
 
         #looping for preset number of epochs
         for epoch in range(self.num_epochs):
             print(f"*** Current epoch: {epoch + 1} / {self.num_epochs}") #sanity check
 
-            num_batches = self.data_loader() #number of batches in train loader
-            loop = tqdm(self.data_loader) #loop object for progress bar
+            num_batches = len(self.train_loader) #number of batches in train loader
+            loop = tqdm(self.train_loader) #loop object for progress bar
             epoch_loss = 0 #initializing current epoch loss to zero
 
             #looping over each batch of data
@@ -56,15 +64,19 @@ class Train:
 
                 #backward pass (backprop)
                 self.optimizer.zero_grad() #initializing gradients to zero
-                loss.backward() #update weights depending on gradients computer above
-                self.optimizer.step() #gradient descent (or ADAM step)
+                loss.backward() #updating weights depending on gradients computed above
+                self.optimizer.step() #single gradient descent step (or ADAM step)
 
-                loop.set_postfix(loss=(epoch_loss / len(self.data_loader))) #updating tqdm bar to show loss 
+                loop.set_postfix(loss=(epoch_loss / len(self.train_loader))) #updating tqdm bar to show loss 
 
             epoch_loss /= num_batches #averaging loss by batch size
 
             if epoch_loss < best_loss: #if current loss is less than best loss
                 best_loss = epoch_loss #updating best loss
                 #TODO: save current model checkpoint with experiment/run ID in filename
+                torch.save(self.model, os.path.join(self.save_model_path, self.exp_id + '.pt'))
 
             print(f"Epoch: {epoch + 1} / {self.num_epochs} \t Loss: {epoch_loss} \t Best Loss: {best_loss}\n")
+
+        end_time = time.time()
+        print(f"Total train time: {(end_time - start_time)} seconds")
