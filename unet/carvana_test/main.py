@@ -83,7 +83,7 @@ def main():
                     train_loader=train_loader,
                     test_loader=test_loader,
                     num_epochs=num_epochs)
-    breakpoint() #sanity check
+    # breakpoint() #sanity check
     trainer.train() #calling function to train model
 
     #TODO: evaluate model on test set

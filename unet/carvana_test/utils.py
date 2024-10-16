@@ -3,6 +3,8 @@ import math
 import cv2
 import torch
 import torch.nn as nn
+import torchvision
+import os
 
 #function to resize (the longest side of) an image given: an image, the desired size
 def resizeImage(img: np.ndarray, size: int) -> np.ndarray:
@@ -130,3 +132,22 @@ def saveModel(model, path: str) -> None:
 def loadModel(path: str):
     #TODO
     pass
+
+#function to save predicted mask images
+def savePredictedMasks(data_loader, model, exp_id: str, device: str = "cuda"):
+    model.eval() #setting model to evaluate mode
+    img_save_dir = f"experiments/{exp_id}"; os.makedirs(img_save_dir, exist_ok=True)
+
+    #looping over batches
+    for batch_idx, (img_batch, gt_mask_batch) in enumerate(data_loader):
+        img_batch = img_batch.to(device) #batch of images
+        gt_mask_batch = gt_mask_batch.float().unsqueeze(1).to(device) #batch of masks (unsqueeze to add single channel dimension)
+        with torch.no_grad(): #not calculating gradient
+            pred_masks = model(img_batch) #forward pass
+            pred_masks = torch.sigmoid(pred_masks)
+            pred_masks = (pred_masks > 0.5).float()
+
+            torchvision.utils.save_image(pred_masks, os.path.join(img_save_dir, f"pred_{batch_idx}.png"))
+            torchvision.utils.save_image(gt_mask_batch, os.path.join(img_save_dir, f"gt_{batch_idx}.png"))
+
+    model.train() #setting model back to train mode

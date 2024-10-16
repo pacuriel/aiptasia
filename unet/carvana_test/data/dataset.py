@@ -35,7 +35,14 @@ class ImageDataset(Dataset):
         
         #reading in image
         image = cv2.imread(image_path)
-        image = TF.to_tensor(image)
+        if image is not None:
+            image = TF.to_tensor(image)
+        else: 
+            breakpoint()
+            print(f"Image w/ index {index} returned None!")
+            print(f"Image path: {image_path}")
+            print(f"Mask path: {mask_path}")
+            raise TypeError(f"Image with index {index} and path {image_path} returned with type {type(image)}!")
 
         #reading in mask and processing for single channel gray-scale 
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
