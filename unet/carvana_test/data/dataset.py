@@ -35,7 +35,7 @@ class ImageDataset(Dataset):
         
         #reading in image
         image = cv2.imread(image_path)
-        if image is not None:
+        if image is not None: #sanity check bc i had a corrupted image :(
             image = TF.to_tensor(image)
         else: 
             breakpoint()

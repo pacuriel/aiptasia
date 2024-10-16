@@ -78,19 +78,22 @@ class Train:
                 best_loss = epoch_loss #updating best loss
                 torch.save(self.model, os.path.join(self.save_model_path, self.exp_id + '.pt'))
 
-            breakpoint()
+            # breakpoint()
             #TODO: apply model to test set here
-            savePredictedMasks(data_loader=self.test_loader, model=self.model, exp_id=self.exp_id, device=device)
 
             print(f"Epoch: {epoch + 1} / {self.num_epochs} \t Train loss: {epoch_loss} \t Test loss: {0} \t Best train Loss: {best_loss}\n")
+
+            #saving predicted masks on last epoch
+            if (epoch + 1) == self.num_epochs:
+                savePredictedMasks(data_loader=self.test_loader, model=self.model, exp_id=self.exp_id, device=device)
+
 
         end_time = time.time()
         print(f"Total train time: {(end_time - start_time)} seconds")
 
     #function to test U-Net on train data
-    def test(self):
+    def test(self, calculate_metrics=False):
         #TODO: add a "save_pred_mask" flag to decide whether to dave the predicted masks
-
 
         self.model.eval() #setting model to evaluate mode
         data_loader = self.test_loader #test dataloader
@@ -115,4 +118,9 @@ class Train:
                 self.optimizer.step() #single gradient descent step (or ADAM step)
 
                 # loop.set_postfix(loss=(epoch_loss / len(data_loader))) #updating tqdm bar to show loss 
+
+        #TODO: use caluculate_metrics flag to call function to calculate metrics 
+            #Note: above will likely have to be done per minibatch and averaged? 
+        if calculate_metrics:
+            pass
             
