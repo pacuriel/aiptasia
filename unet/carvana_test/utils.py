@@ -2,9 +2,19 @@ import numpy as np
 import math
 import cv2
 import torch
-import torch.nn as nn
+# import torch.nn as nn
 import torchvision
 import os
+import matplotlib.pyplot as plt
+
+class ImageUtils:
+    pass
+
+class ModelUtils:
+    pass
+
+class StartupUtils:
+    pass
 
 #function to resize (the longest side of) an image given: an image, the desired size
 def resizeImage(img: np.ndarray, size: int) -> np.ndarray:
@@ -151,3 +161,13 @@ def savePredictedMasks(data_loader, model, exp_id: str, device: str = "cuda"):
             torchvision.utils.save_image(gt_mask_batch, os.path.join(img_save_dir, f"gt_{batch_idx}.png"))
 
     model.train() #setting model back to train mode
+
+#function to plot the train and test losses per epoch
+def plotLosses(train_losses: list, test_losses: list, num_epochs: int, save_dir: str) -> None:
+    plt.plot(list(range(num_epochs)), train_losses, label="train loss")
+    plt.plot(list(range(num_epochs)), test_losses, label="test loss")
+    plt.legend()
+    # plt.grid() #GRID ON OR OFF????
+    plt.title("Train/Test Loss per Epoch")
+    plt.savefig('test.png')    
+    plt.clf()

@@ -9,13 +9,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 
 # from unet_OG import UNet #importing OG U-Net Model
 from unet_padded import UNet
 from data import ImageDataset #dataset class
 from train import Train
-from test import Test
 
 RANDOM_SEED = 42 #random seed for testing (not so random i guess?)
 
@@ -25,8 +23,7 @@ in_channels = 3 #three channels for RGB images
 out_channels = 1
 learning_rate = 1e-3 #learning rate used by optimizer
 batch_size = 16 #size of each batch to train on
-num_epochs = 10 #number of epochs (full passes over training data) to train for 
-
+num_epochs = 3 #number of epochs (full passes over training data) to train for 
 #setting global variables
 device = "cuda" if torch.cuda.is_available() else "cpu" #device for pytorch
 
@@ -83,7 +80,7 @@ def main():
                     train_loader=train_loader,
                     test_loader=test_loader,
                     num_epochs=num_epochs)
-    # breakpoint() #sanity check
+
     trainer.train() #calling function to train model
 
     #TODO: evaluate model on test set
