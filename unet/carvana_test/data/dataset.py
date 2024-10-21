@@ -50,6 +50,7 @@ class ImageDataset(Dataset):
         #converting mask to binary (i.e. 0/1)
         (thresh, mask) = cv2.threshold(mask, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         mask[mask == 255] = 1.0
+        mask = TF.to_tensor(mask) #converting mask to tensor
 
         #applying transformations (converting to tensor, etc.)
         if self.transform:
@@ -57,5 +58,5 @@ class ImageDataset(Dataset):
         if self.target_transform:
             mask = self.target_transform(mask)
         
-        return image, mask
+        return image, mask, index
     

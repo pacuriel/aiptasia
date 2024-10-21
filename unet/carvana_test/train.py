@@ -20,7 +20,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #class to train U-Net
 class Train:
-    def __init__(self, model, loss, optimizer, train_loader, test_loader, num_epochs: int, exp_dir: str = None):
+    def __init__(self, model, loss, optimizer, train_loader, test_loader, num_epochs: int, image_dir: str, mask_dir: str):
         """
         Input: 
         - model: class inheriting from nn.Module
@@ -34,6 +34,11 @@ class Train:
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.num_epochs = num_epochs
+        self.image_dir = image_dir
+        self.mask_dir = mask_dir
+
+        #list with image/mask file names
+        self.file_names = sorted(os.listdir(self.image_dir)) 
 
         self.exp_id = datetime.now().strftime("%d-%b-%Y_%H%M_%S") #setting experiment id to current date/time
         self.exp_dir = os.path.join("experiments", self.exp_id)
@@ -63,10 +68,9 @@ class Train:
             test_loss = 0
 
             #looping over each batch of data
-            for batch_idx, (img_batch, gt_mask_batch) in enumerate(loop):
+            for batch_idx, (img_batch, gt_mask_batch, indices) in enumerate(loop):
                 img_batch = img_batch.to(device) #batch of images
-                gt_mask_batch = gt_mask_batch.float().unsqueeze(1).to(device) #batch of masks (unsqueeze to add single channel dimension)
-
+                gt_mask_batch = gt_mask_batch.float().to(device) #batch of masks (unsqueeze to add single channel dimension)
                 pred_masks = self.model(img_batch) #forward pass
                 loss = self.loss_fcn(pred_masks, gt_mask_batch) #calculating loss
 
@@ -88,9 +92,9 @@ class Train:
                 torch.save(self.model, os.path.join(self.exp_dir, 'best_train_model.pt')) #saving model
 
             #applying model to test set
-            test_loss = self.test(calculate_metrics=False)
+            test_loss = self.test(calculate_metrics=False, save_mask_arrays=True)
             test_losses.append(test_loss)
-        
+            
             #updating best test loss
             if test_loss < best_test_loss: 
                 best_test_loss = test_loss
@@ -102,7 +106,6 @@ class Train:
             #     savePredictedMasks(data_loader=self.test_loader, model=self.model, exp_id=self.exp_id, device=device)
 
         test_loss = self.test(calculate_metrics=False, save_mask_arrays=True) #running through test data to save final mask arrays
-
 
         plotLosses(train_losses, test_losses, self.num_epochs, save_dir=self.exp_dir)
 
@@ -119,9 +122,9 @@ class Train:
         #telling pytorch not to calculate gradients
         with torch.no_grad():
             #looping over each batch of data
-            for batch_idx, (img_batch, gt_mask_batch) in enumerate(data_loader):
+            for batch_idx, (img_batch, gt_mask_batch, indices) in enumerate(data_loader):
                 img_batch = img_batch.to(device) #batch of images
-                gt_mask_batch = gt_mask_batch.float().unsqueeze(1).to(device) #batch of masks (unsqueeze to add single channel dimension)
+                gt_mask_batch = gt_mask_batch.float().to(device) #batch of masks (unsqueeze to add single channel dimension)
                 pred_masks = self.model(img_batch) #forward pass
             
                 loss = self.loss_fcn(pred_masks, gt_mask_batch) #calculating loss
@@ -132,20 +135,25 @@ class Train:
 
                 #flag to save masks as png files
                 if save_mask_imgs:
-                    directory = os.path.join(self.exp_id, "mask_images")
+                    directory = os.path.join(self.exp_dir, "mask_images")
                     os.makedirs(name=directory, exist_ok=True)
 
                 #flag to save masks as npy files
                 if save_mask_arrays:
-                    directory = os.path.join(self.exp_dir, "mask_arrays")
-                    os.makedirs(name=directory, exist_ok=True)
+                    directory = os.path.join(self.exp_dir, "mask_arrays") #directory to store mask arrays
+                    os.makedirs(name=directory, exist_ok=True) #creating above directory
+
                     #converting masks to numpy arrays
                     pred_masks = pred_masks.squeeze().cpu().numpy() 
-                    gt_mask_batch = gt_mask_batch.squeeze().cpu().numpy() 
+                    
+                    #looping over each predicted mask in current batch and saving
+                    for i, mask in enumerate(pred_masks):
+                        np.save(file=os.path.join(directory, self.file_names[indices[i]][:-3] + 'npy'), arr=mask)
+                    
                     #saving masks as npy files
-                    np.save(file=os.path.join(directory, f"pred_{batch_idx}.npy"), arr=pred_masks)
-                    np.save(file=os.path.join(directory, f"gt_{batch_idx}.npy"), arr=gt_mask_batch)
-
+                    # np.save(file=os.path.join(directory, f"pred_{batch_idx}.npy"), arr=pred_masks)
+                    # np.save(file=os.path.join(directory, f"gt_{batch_idx}.npy"), arr=gt_mask_batch)
+                    # np.save(file=os.path.join(directory, ))
 
             test_loss /= num_batches #averaging loss by number of batches
 
@@ -153,7 +161,6 @@ class Train:
             #Note: above will likely have to be done per minibatch and averaged? 
         if calculate_metrics:
             pass
-        
 
         self.model.train() #setting model back to train mode
         return test_loss
