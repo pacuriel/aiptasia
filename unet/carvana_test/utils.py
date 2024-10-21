@@ -124,15 +124,60 @@ def padImage(img: np.ndarray, tile_size: int = 256) -> np.ndarray:
 
     return img
 
-#function to stitch an image back together
-def stitchImage(tiles: list[np.ndarray], original_img_path: str) -> np.ndarray:
-    #TODO
-    pass
+#function to "stitch" tiles back together for full image
+def stitchTiles(tiles: list[np.ndarray], img_shape: tuple[int], overlap: bool = False) -> np.ndarray:
+    """
+    Input: 
+    - tiles: list of tiles 
+    - img_shape: shape of tiled image (after padding)
+    - overlap: booleann flag for if tiles are overlapping
+    """
+    img = np.zeros(shape=img_shape, dtype=np.uint8) #initializing array of zeros
+
+    #TODO: add check to confirm H,W are not indices 2,3 (i.e. shape = C x H x W)
+    H = img_shape[0]; W = img_shape[1] #storing height/width 
+    tile_size = tiles[0].shape[0] #size of tiles TODO: confirm all tiles are square and same size
+
+    #number of tiles along height and width
+    tiles_H = math.ceil(H / tile_size) 
+    tiles_W = math.ceil(W / tile_size)
+
+    tile_idx = 0 #used to index tiles below
+
+    #looping over height of image (rows)
+    for i in range(tiles_H):
+        #looping over width of image (cols)
+        for j in range(tiles_W):
+            img[i*tile_size:(i+1)*tile_size, j*tile_size:(j+1)*tile_size] = tiles[tile_idx] #setting image region to tile
+
+            tile_idx += 1 #incrementing index
+
+    return img
 
 #function to unpad an image to revert back to original dimensions
-def unpadImage(img: np.ndarray, original_img_path: str) -> np.ndarray:
-    #TODO
-    pass
+def unpadImage(img: np.ndarray, img_shape: tuple[int], tile_size: int = 256) -> np.ndarray:
+    """
+    Input: 
+    - img: image to unpad 
+    - img_shape: shape of image after unpadding (i.e. original image)
+    - overlap: booleann flag for if tiles are overlapping
+    """
+
+    unpadded_img = np.zeros(img_shape, dtype=np.uint8)
+
+    H = img_shape[0]; W = img_shape[1] #dimensions of original unpadded image
+    padded_H = img.shape[0]; padded_W = img.shape[1] #dimensions of padded image
+
+    #amount of padding on each side of height/width respectively
+    H_pad = (tile_size*math.ceil(H / tile_size) - H) // 2
+    W_pad = (tile_size*math.ceil(W / tile_size) - W) // 2
+
+    #if image was padded, then unpad
+    if H_pad != 0 or W_pad != 0:
+        unpadded_img = img[H_pad:(padded_H - H_pad), W_pad:(padded_W - W_pad)] #storing unpadded image
+
+    #TODO: should we store a new variable or just return the above
+    return unpadded_img 
 
 #function to save a model
 def saveModel(model, path: str) -> None:
@@ -171,3 +216,13 @@ def plotLosses(train_losses: list, test_losses: list, num_epochs: int, save_dir:
     plt.title("Train/Test Loss per Epoch")
     plt.savefig('test.png')    
     plt.clf()
+
+#function to read and store an image as a numpy array
+def readImage(img_path: str, mask: bool = False) -> np.ndarray:
+    if mask: #binary mask image
+        img = np.array(Image.open(img_path).convert("L"), dtype=np.float32)
+    else: #raw image
+        img = cv2.imread(img_path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    return img
