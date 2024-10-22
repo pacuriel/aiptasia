@@ -81,7 +81,7 @@ class Train:
                 loss.backward() #updating weights depending on gradients computed above
                 self.optimizer.step() #single gradient descent step (or ADAM step)
 
-                loop.set_postfix(loss=(epoch_loss / len(data_loader))) #updating tqdm bar to show loss 
+                loop.set_postfix(loss=(epoch_loss / num_batches)) #updating tqdm bar to show loss 
 
             epoch_loss /= num_batches #averaging loss by number of batches
             train_losses.append(epoch_loss) #storing loss
@@ -100,10 +100,6 @@ class Train:
                 best_test_loss = test_loss
 
             print(f"Epoch: {epoch + 1} / {self.num_epochs} \t Train loss: {epoch_loss} \t Best train Loss: {best_train_loss} \t Test loss: {test_loss} \t Best test Loss: {best_test_loss}\n")
-
-            #saving predicted masks on last epoch
-            # if (epoch + 1) == self.num_epochs:
-            #     savePredictedMasks(data_loader=self.test_loader, model=self.model, exp_id=self.exp_id, device=device)
 
         test_loss = self.test(calculate_metrics=False, save_mask_arrays=True) #running through test data to save final mask arrays
 

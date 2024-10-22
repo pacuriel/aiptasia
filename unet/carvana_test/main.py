@@ -16,6 +16,7 @@ from data import ImageDataset #dataset class
 from train import Train
 
 RANDOM_SEED = 42 #random seed for testing (not so random i guess?)
+torch.manual_seed(RANDOM_SEED)
 
 #setting hyperparameters as global variables
 #TODO: don't hardcode hyperparams
@@ -23,7 +24,7 @@ in_channels = 3 #three channels for RGB images
 out_channels = 1
 learning_rate = 1e-3 #learning rate used by optimizer
 batch_size = 16 #size of each batch to train on
-num_epochs = 25 #number of epochs (full passes over training data) to train for 
+num_epochs = 20 #number of epochs (full passes over training data) to train for 
 #setting global variables
 device = "cuda" if torch.cuda.is_available() else "cpu" #device for pytorch
 
