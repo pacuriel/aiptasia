@@ -1,9 +1,6 @@
 import os
-import torch
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import torchvision.transforms.functional as TF
 import cv2
 
@@ -16,6 +13,9 @@ class ImageDataset(Dataset):
         - mask_dir (string): directory with masks
         - transform: transformations to apply to images and masks
         """
+        if not (isinstance(image_dir, str) or isinstance(mask_dir, str)): #confirming directory names are strings
+            raise TypeError
+
         ###Consider what transforms we want to do to both the raw image and the target (mask)?
         self.image_dir = image_dir #image directory
         self.mask_dir = mask_dir #mask directory
@@ -35,14 +35,22 @@ class ImageDataset(Dataset):
         
         #reading in image
         image = cv2.imread(image_path)
-        image = TF.to_tensor(pic=image)
+        if image is not None: #sanity check bc i had a corrupted image :(
+            image = TF.to_tensor(image)
+        else: 
+            breakpoint()
+            print(f"Image w/ index {index} returned None!")
+            print(f"Image path: {image_path}")
+            print(f"Mask path: {mask_path}")
+            raise TypeError(f"Image with index {index} and path {image_path} returned with type {type(image)}!")
 
         #reading in mask and processing for single channel gray-scale 
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         
-        #converting mask to binary 0-1
+        #converting mask to binary (i.e. 0/1)
         (thresh, mask) = cv2.threshold(mask, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        mask[mask == 255] = 0 
+        mask[mask == 255] = 1.0
+        mask = TF.to_tensor(mask) #converting mask to tensor
 
         #applying transformations (converting to tensor, etc.)
         if self.transform:
@@ -50,5 +58,5 @@ class ImageDataset(Dataset):
         if self.target_transform:
             mask = self.target_transform(mask)
         
-        return image, mask
+        return image, mask, index
     

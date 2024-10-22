@@ -1,2 +1,7 @@
 unet/test_unet.py
 __pycache__
+TODO.txt
+.vscode
+test
+*.pt
+experiments
