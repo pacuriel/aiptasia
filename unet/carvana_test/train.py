@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import time
 import numpy as np
+from torchvision.utils import save_image
 
 from utils import savePredictedMasks, plotLosses
 
@@ -20,7 +21,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 #class to train U-Net
 class Train:
-    def __init__(self, model, loss, optimizer, train_loader, test_loader, num_epochs: int, image_dir: str, mask_dir: str):
+    def __init__(self, model, loss, optimizer, train_loader, test_loader, num_epochs, train_img_dir, train_mask_dir, test_img_dir, test_mask_dir):
         """
         Input: 
         - model: class inheriting from nn.Module
@@ -34,11 +35,14 @@ class Train:
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.num_epochs = num_epochs
-        self.image_dir = image_dir
-        self.mask_dir = mask_dir
+        self.train_img_dir = train_img_dir
+        self.train_mask_dir = train_mask_dir
+        self.test_img_dir = test_img_dir
+        self.test_mask_dir = test_mask_dir
 
         #list with image/mask file names
-        self.file_names = sorted(os.listdir(self.image_dir)) 
+        self.train_files = sorted(os.listdir(self.train_img_dir))
+        self.test_files = sorted(os.listdir(self.test_img_dir))
 
         self.exp_id = datetime.now().strftime("%d-%b-%Y_%H%M_%S") #setting experiment id to current date/time
         self.exp_dir = os.path.join("experiments", self.exp_id)
@@ -98,6 +102,7 @@ class Train:
             #updating best test loss
             if test_loss < best_test_loss: 
                 best_test_loss = test_loss
+                torch.save(self.model, os.path.join(self.exp_dir, 'best_test_model.pt')) #saving model
 
             print(f"Epoch: {epoch + 1} / {self.num_epochs} \t Train loss: {epoch_loss} \t Best train Loss: {best_train_loss} \t Test loss: {test_loss} \t Best test Loss: {best_test_loss}\n")
 
@@ -144,13 +149,8 @@ class Train:
                     
                     #looping over each predicted mask in current batch and saving
                     for i, mask in enumerate(pred_masks):
-                        np.save(file=os.path.join(directory, self.file_names[indices[i]][:-3] + 'npy'), arr=mask)
+                        np.save(file=os.path.join(directory, self.test_files[indices[i]][:-3] + 'npy'), arr=mask)
                     
-                    #saving masks as npy files
-                    # np.save(file=os.path.join(directory, f"pred_{batch_idx}.npy"), arr=pred_masks)
-                    # np.save(file=os.path.join(directory, f"gt_{batch_idx}.npy"), arr=gt_mask_batch)
-                    # np.save(file=os.path.join(directory, ))
-
             test_loss /= num_batches #averaging loss by number of batches
 
         #TODO: use caluculate_metrics flag to call function to calculate metrics 
