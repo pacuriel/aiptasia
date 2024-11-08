@@ -18,7 +18,7 @@ class Metrics:
         specificity = self.__specificity(gt, pred)
         precision = self.__precision(gt, pred)
         accuracy = self.__accuracy(gt, pred)
-        
+
         return iou, dice, sensitivity, specificity, precision, accuracy
 
     #function to calculate the jaccard index (IoU)
@@ -87,7 +87,8 @@ def main():
         gt_mask_name = pred_base_name + "_mask.gif"
 
         #loading gt mask
-        gt_mask = np.array(Image.open(os.path.join(gt_mask_dir, os.listdir(gt_mask_dir)[i])).convert("L"), dtype=np.uint8)
+        # gt_mask = np.array(Image.open(os.path.join(gt_mask_dir, os.listdir(gt_mask_dir)[i])).convert("L"), dtype=np.uint8)
+        gt_mask = np.array(Image.open(os.path.join(gt_mask_dir, gt_mask_name)).convert("L"), dtype=np.uint8)
         (thresh, gt_mask) = cv2.threshold(gt_mask, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         gt_mask[gt_mask == 255] = 1.0
 
@@ -100,6 +101,10 @@ def main():
         metrics_obj = Metrics()
         iou, dice, sensitivity, specificity, precision, accuracy = metrics_obj.calculateMetrics(gt_mask, pred_mask)
         
+        #sanity check
+        if iou < 0.6:
+            breakpoint()
+
         #plotting pred masks with metrics 
         metric_text = f"IOU = %.2f\nDice = %.2f\nSensitivity = %.2f\nSpecificity = %.2f\nPrecision = %.2f\nAccuracy = %.2f" % (iou, dice, sensitivity, specificity, precision, accuracy)
         plt.imshow(pred_mask)
