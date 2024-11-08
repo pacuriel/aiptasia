@@ -7,14 +7,14 @@ from tqdm import tqdm
 from utils import tileImage, padImage
 
 #data directories
-BASE_DIR = "/home/pcuriel/data/aiptasia/image_data/carvana_data"
+BASE_DIR = "/home/pcuriel/data/aiptasia/image_data/carvana_data/full_dataset"
 TRAIN_IMAGE_DIR = os.path.join(BASE_DIR, "train_images")
 TRAIN_MASK_DIR = os.path.join(BASE_DIR, "train_masks")
 TEST_IMAGE_DIR = os.path.join(BASE_DIR, "test_images")
 TEST_MASK_DIR = os.path.join(BASE_DIR, "test_masks")
 
 #size of tiles to create
-TILE_SIZE = 512
+TILE_SIZE = 256
 
 #function to tile images into non-overlapping squares of a given size
 def preprocess(directories: list[list[str]]) -> None:

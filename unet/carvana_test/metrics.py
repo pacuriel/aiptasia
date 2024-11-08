@@ -1,4 +1,9 @@
 import numpy as np
+import os
+import matplotlib.pyplot as plt
+import cv2
+from PIL import Image
+from tqdm import tqdm
 
 #class to calculate metrics (IoU, Dice, etc.)
 class Metrics:
@@ -7,67 +12,115 @@ class Metrics:
 
     #function to calculate relevant metrics on data
     def calculateMetrics(self, gt, pred):
-        iou = self.__jaccardIndex(gt, pred) #avg iou per batch
-        dice = self.__diceCoefficient(gt, pred) #avg dice coefficient
-        return iou, dice
+        iou = self.__jaccardIndex(gt, pred) #iou
+        dice = self.__diceCoefficient(gt, pred) #dice coefficient
+        sensitivity = self.__sensitivity(gt, pred)
+        specificity = self.__specificity(gt, pred)
+        precision = self.__precision(gt, pred)
+        accuracy = self.__accuracy(gt, pred)
+        
+        return iou, dice, sensitivity, specificity, precision, accuracy
 
-
-    #function to calculate the average jaccard index (IoU) over a batch of preds
+    #function to calculate the jaccard index (IoU)
     @staticmethod
     def __jaccardIndex(gt, pred):
-        batch_size = pred.shape[0] 
-        avg_iou = 0
-
-        #looping over each image in batch
-        for i in range(batch_size):
-            pred_mask = pred[i]
-            gt_mask = gt[i]
-
-            intersection = np.logical_and(pred_mask, gt_mask)
-            union = np.logical_or(pred_mask, gt_mask)
-            
-            #if both pred and GT are all BG
-            if union.sum() == 0: 
-                avg_iou += 1 #rewarding with max IoU (should we do this???)
-                continue 
-
-            avg_iou += intersection.sum() / union.sum()
-
-        avg_iou /= batch_size #diving by batch size to obtain average
-        return avg_iou
+        intersection = np.logical_and(pred, gt)
+        union = np.logical_or(pred, gt)
+        iou = intersection.sum() / union.sum()
+        return iou
 
     #function to calculate the Dice coefficient 
     @staticmethod
     def __diceCoefficient(gt, pred):
-        batch_size = pred.shape[0] 
-        avg_dice = 0
+        intersection = np.logical_and(pred, gt)
+        totals = pred.sum() + gt.sum()
+        dice = (2 * intersection.sum()) / totals
+        return dice
 
-        for i in range(batch_size):
-            pred_mask = pred[i]
-            gt_mask = gt[i]
+    #function to calculate the sensitivity 
+    @staticmethod
+    def __sensitivity(gt, pred): #aka recall
+        tp = np.logical_and(gt, pred).sum() #true positives
+        fn = ((gt - pred) == 1).sum()
+        sensitivity = tp / (tp + fn)
+        return sensitivity #ability to detect true positives (white pixels)
 
-            intersection = np.logical_and(pred_mask, gt_mask)
-            totals = pred_mask.sum() + gt_mask.sum()
-
-            #checking if all BG
-            if totals == 0: 
-                avg_dice += 1 #(should we do this???)
-                continue
-
-            avg_dice += (2 * intersection.sum()) / totals
-
-        avg_dice /= batch_size
-        return avg_dice
-
-    def __sensitivity(gt, pred):
-        pass
-    
+    #function to calculate the specificity 
     @staticmethod
     def __specificity(gt, pred):
-        pass
-
+        not_gt = np.logical_not(gt)
+        not_pred = np.logical_not(pred)
+        tn = np.logical_and(not_gt, not_pred).sum()
+        fp = ((pred - gt) == 1).sum()
+        specficity = tn / (tn + fp)
+        return specficity #ability to detect true negatives (background)
+    
+    #function to calculate precision
+    @staticmethod
+    def __precision(gt, pred):
+        tp = np.logical_and(gt, pred).sum() #true positives
+        fp = ((pred - gt) == 1).sum()
+        precision = tp / (tp + fp)
+        return precision #positive predictive value
+    
+    #function to calculate overall accuracy
+    @staticmethod
     def __accuracy(gt, pred):
-        pass
+        true = (gt == pred).sum()
+        accuracy = true / (gt.shape[0] * gt.shape[1])
+        return accuracy
 
-    def __fScore(gt, pred):
-        pass
+def main():
+    #pred/gt directories
+    pred_mask_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/mask_images"
+    gt_mask_dir = "/home/pcuriel/data/aiptasia/image_data/carvana_data/full_dataset/test_masks"
+    
+    #directory to save figures w/ metrics
+    metrics_mask_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/metrics_masks"
+    os.makedirs(metrics_mask_dir, exist_ok=True)
+
+    avg_metrics = {"iou": 0, "dice": 0, "sensitivity": 0, "specificity": 0, "precision": 0, "accuracy": 0}
+
+    for i, pred_mask_file in enumerate(tqdm(os.listdir(pred_mask_dir))):
+        pred_base_name = pred_mask_file.split(".")[0]
+
+        gt_mask_name = pred_base_name + "_mask.gif"
+
+        #loading gt mask
+        gt_mask = np.array(Image.open(os.path.join(gt_mask_dir, os.listdir(gt_mask_dir)[i])).convert("L"), dtype=np.uint8)
+        (thresh, gt_mask) = cv2.threshold(gt_mask, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        gt_mask[gt_mask == 255] = 1.0
+
+        #loading pred mask
+        pred_mask = np.array(Image.open(os.path.join(pred_mask_dir, pred_mask_file)).convert("L"), dtype=np.uint8)
+        (thresh, pred_mask) = cv2.threshold(pred_mask, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        pred_mask[pred_mask == 255] = 1.0 
+
+        #calculating relevant metrics
+        metrics_obj = Metrics()
+        iou, dice, sensitivity, specificity, precision, accuracy = metrics_obj.calculateMetrics(gt_mask, pred_mask)
+        
+        #plotting pred masks with metrics 
+        metric_text = f"IOU = %.2f\nDice = %.2f\nSensitivity = %.2f\nSpecificity = %.2f\nPrecision = %.2f\nAccuracy = %.2f" % (iou, dice, sensitivity, specificity, precision, accuracy)
+        plt.imshow(pred_mask)
+        plt.text(-1200, 1000, metric_text, fontsize=14)
+        plt.subplots_adjust(left=0.35)
+        plt.title(pred_base_name)
+        plt.savefig(os.path.join(metrics_mask_dir, pred_base_name + "_metrics.png"))
+        plt.clf()
+
+        #updating average metrics
+        avg_metrics["iou"] += iou
+        avg_metrics["dice"] += dice
+        avg_metrics["sensitivity"] += sensitivity
+        avg_metrics["specificity"] += specificity
+        avg_metrics["precision"] += precision
+        avg_metrics["accuracy"] += accuracy
+
+    #averaging the metrics over the number of files
+    for metric in avg_metrics:
+        avg_metrics[metric] /= len(os.listdir(pred_mask_dir))
+        print(f"Avg. {metric}: {avg_metrics[metric]}")
+
+if __name__ == "__main__":
+    main()
