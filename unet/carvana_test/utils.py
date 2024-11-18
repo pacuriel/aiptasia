@@ -127,14 +127,14 @@ def padImage(img: np.ndarray, tile_size: int = 256) -> np.ndarray:
     return img
 
 #function to "stitch" tiles back together for full image
-def stitchTiles(tiles: list[np.ndarray], img_shape: tuple[int], overlap: bool = False) -> np.ndarray:
+def stitchTiles(tiles: list[np.ndarray], img_shape: tuple[int], overlap: bool = False, data_type = np.uint8) -> np.ndarray:
     """
     Input: 
     - tiles: list of tiles 
     - img_shape: shape of tiled image (after padding)
     - overlap: booleann flag for if tiles are overlapping
     """
-    img = np.zeros(shape=img_shape, dtype=np.uint8) #initializing array of zeros
+    img = np.zeros(shape=img_shape, dtype=data_type) #initializing array of zeros
 
     #TODO: add check to confirm H,W are not indices 2,3 (i.e. shape = C x H x W)
     H = img_shape[0]; W = img_shape[1] #storing height/width 
@@ -156,7 +156,7 @@ def stitchTiles(tiles: list[np.ndarray], img_shape: tuple[int], overlap: bool = 
 
     return img
 
-def unpadImage(img: np.ndarray, img_shape: tuple[int], tile_size: int = 256) -> np.ndarray:
+def unpadImage(img: np.ndarray, img_shape: tuple[int], tile_size: int = 256, data_type = np.uint8) -> np.ndarray:
     """
     Input: 
     - img: image to unpad 
@@ -164,7 +164,7 @@ def unpadImage(img: np.ndarray, img_shape: tuple[int], tile_size: int = 256) -> 
     - overlap: booleann flag for if tiles are overlapping
     """
 
-    unpadded_img = np.zeros(img_shape, dtype=np.uint8)
+    unpadded_img = np.zeros(img_shape, dtype=data_type)
 
     H = img_shape[0]; W = img_shape[1] #dimensions of original unpadded image
     padded_H = img.shape[0]; padded_W = img.shape[1] #dimensions of padded image

@@ -6,6 +6,7 @@ import cv2
 from PIL import Image
 from natsort import natsorted
 from tqdm import tqdm
+import seaborn as sns
 
 from utils import *
 
@@ -16,9 +17,11 @@ def main():
     """
     Stitching pred mask back to full images
     """
-    pred_mask_tile_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/mask_arrays"    
+    # pred_mask_tile_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/mask_arrays"    
+    pred_mask_tile_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/heatmaps/heatmap_tiles"    
     pred_mask_tile_files = natsorted(os.listdir(pred_mask_tile_dir))
-    pred_img_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/mask_images"
+    # pred_img_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/mask_images"
+    pred_img_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/heatmaps"
     os.makedirs(pred_img_dir, exist_ok=True)
 
     gt_mask_dir = "/home/pcuriel/data/aiptasia/image_data/carvana_data/full_dataset/test_masks"
@@ -56,15 +59,23 @@ def main():
     
             tile_idx += 1 #incrementing index
         #stitching tiles together
-        padded_pred_mask = stitchTiles(tiles=tiles, img_shape=padded_gt_mask.shape)
-
+        padded_pred_mask = stitchTiles(tiles=tiles, img_shape=padded_gt_mask.shape, data_type=np.float32)
         #unpadding image back to original size
-        pred_mask = unpadImage(img=padded_pred_mask, img_shape=gt_mask.shape, tile_size=TILE_SIZE)
+        pred_mask = unpadImage(img=padded_pred_mask, img_shape=gt_mask.shape, tile_size=TILE_SIZE, data_type=np.float32)
+        
+        height, width = pred_mask.shape
+        aspect_ratio = width / height
+        fig, ax = plt.subplots(figsize=(10, 10 / aspect_ratio))
+
+        heatmap = sns.heatmap(pred_mask, ax=ax, xticklabels=False, yticklabels=False, cmap="hot", square=False)
+        heatmap.set_title(pred_basename)
+        heatmap.figure.savefig(os.path.join(pred_img_dir, pred_basename + ".png"))
+        plt.close()
 
         #saving predicted mask
         # plt.imshow(pred_mask, cmap="binary_r")
         # plt.savefig(os.path.join(pred_img_dir, pred_basename + ".png"))
-        cv2.imwrite(os.path.join(pred_img_dir, pred_basename + ".png"), pred_mask*255)
+        # cv2.imwrite(os.path.join(pred_img_dir, pred_basename + ".png"), pred_mask*255)
 
 if __name__ == "__main__":
     main()
