@@ -5,6 +5,7 @@ September 2024
 
 import torch
 import torch.nn as nn
+from torchvision.transforms import CenterCrop
 
 #class to perform double convolution 
 #Note: should this be its own class???
@@ -26,7 +27,7 @@ class DoubleConv(nn.Module):
 #OG U-Net class that inherits from nn.Module
 class UNet(nn.Module):
     #class constructor
-    def __init__(self, in_channels=3, out_channels=2, feature_sizes=[64, 128, 256, 512, 1024]):
+    def __init__(self, in_channels=3, out_channels=1, feature_sizes=[64, 128, 256, 512, 1024]):
         #note: kernel_size = filter_size
         super(UNet, self).__init__()
         
@@ -54,7 +55,7 @@ class UNet(nn.Module):
             if len(self.expand) == 8:
                 break
         
-        self.final_layer = nn.Conv2d(in_channels=feature_sizes[0], out_channels=2, kernel_size=1, stride=1) #final layer of U-Net
+        self.final_layer = nn.Conv2d(in_channels=feature_sizes[0], out_channels=self.out_channels, kernel_size=1, stride=1) #final layer of U-Net
 
     #function to perform forward pass of UNet (Note: forward fcn. is inherited from nn.Module) 
     def forward(self, x): 
@@ -69,13 +70,19 @@ class UNet(nn.Module):
                 skip_connections.append(x) #storing output for skip connections
                 x = self.pool(x) #applying max pooling
 
+        #reversing skip connections to index easier
+        skip_connections = list(reversed(skip_connections))
+
         #expansive path (upsample)
         for i in range(len(self.expand)):
             x = self.expand[i](x)
-            #TODO: confirm the skip connection is being cropped correctly
             if (i % 2) == 0:
-                skip = skip_connections[3 - (i // 2)][:, :x.shape[1], :x.shape[2]] #cropped skip connection
-                x = torch.cat(tensors=(skip, x))
+                skip = skip_connections[(i // 2)] #cropped skip connection
+                if (x.shape != skip.shape): #checking if dimensions match
+                    skip = CenterCrop(size=(x.shape[-2], x.shape[-1]))(skip) #center cropping skip connection to concat.
+
+                x = torch.cat(tensors=(skip, x), dim=1) #concatenating skip connection to up-conv
+                
 
         #final layer
         x = self.final_layer(x)
@@ -87,9 +94,11 @@ if __name__ == "__main__":
     img_size = 572
     num_samples = 10
     num_channels = 3
-    x = torch.randn((num_channels, img_size, img_size)) #dummy variable to represent RGB images
+    x = torch.randn((num_samples, num_channels, img_size, img_size)) #dummy variable to represent RGB images
     print(x.shape)
 
-    model = UNet(in_channels=3, out_channels=2) #initializing a UNet object
+    out_channels = 1 #for binary mask
+    model = UNet(in_channels=3, out_channels=out_channels) #initializing a UNet object
     preds = model(x)
     print(preds.shape)
+    # print(model)
