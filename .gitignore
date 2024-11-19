@@ -8,3 +8,4 @@ experiments
 *.png
 *.stdout
 *.stderr
+carvana_test
