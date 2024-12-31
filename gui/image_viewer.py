@@ -11,6 +11,19 @@ import matplotlib.pyplot as plt
 
 line_coords = []
 
+"""
+Current setup idea/modifications: 
+- Pan: hold mouse wheel and drag cursor
+- Zoom: spin mouse wheel
+- Positive point prompt: right click (Button-3)
+- Negative point prompt: left click (Button-1)
+
+Thought process for pos/neg prompt buttons: 
+- Most prompts for our case will be the negative case, likely circling around each aiptasia oral disk
+- Left click seems more stable (for me)
+- The right click for positive point prompts will not have to be as accurate
+"""
+
 class ImageViewer(tk.Frame):
     
     # Initializing and setting window properties 
@@ -52,6 +65,7 @@ class ImageViewer(tk.Frame):
         self.master.bind("<B1-Motion>", self.mouse_move_left) # MouseDrag
         self.master.bind("<MouseWheel>", self.mouse_wheel) # MouseWheel
         self.canvas.bind("<Button-3>", self.start_line) # Right mouse button for drawing lines
+        self.canvas.bind("<Button-2>", self.mouse_wheel_button) #Mouse wheel button
     
     # Load image file
     def set_image(self, filename):
@@ -82,6 +96,10 @@ class ImageViewer(tk.Frame):
             self.scale_at(0.8, event.x, event.y)
         self.redraw_image()
 
+    # Test function for when mouse wheel is clicked
+    def mouse_wheel_button(self, event): 
+        print("Mouse wheel button clicked!")
+
     def reset_transform(self):
         self.mat_affine = np.eye(3)
     
@@ -92,14 +110,14 @@ class ImageViewer(tk.Frame):
         mat[1, 2] = float(offset_y)
         self.mat_affine = np.dot(mat, self.mat_affine)
     
-    # zoom base function
+    # Zoom base function
     def scale(self, scale:float):
         mat = np.eye(3)
         mat[0, 0] = scale
         mat[1, 1] = scale
         self.mat_affine = np.dot(mat, self.mat_affine)
     
-    # zoom at mouse location
+    # FUnction to zoom at cursor location
     def scale_at(self, scale:float, cx:float, cy:float):
         self.translate(-cx, -cy)
         self.scale(scale)
