@@ -22,6 +22,10 @@ Thought process for pos/neg prompt buttons:
 - Most prompts for our case will be the negative case, likely circling around each aiptasia oral disk
 - Left click seems more stable (for me)
 - The right click for positive point prompts will not have to be as accurate
+
+Other possible features: 
+- Look into adding a second layer for overlapping/touching aiptasia
+- Set max zoom out such that entire image fits and is viewable (i.e. don't allow for infinite zoom out; seems pointless) 
 """
 
 class ImageViewer(tk.Frame):
@@ -62,10 +66,11 @@ class ImageViewer(tk.Frame):
         
         # bindings
         self.master.bind("<Button-1>", self.mouse_down_left) # MouseDown
-        self.master.bind("<B1-Motion>", self.mouse_move_left) # MouseDrag
+        # self.master.bind("<B1-Motion>", self.mouse_move_lesft) # MouseDrag
         self.master.bind("<MouseWheel>", self.mouse_wheel) # MouseWheel
-        self.canvas.bind("<Button-3>", self.start_line) # Right mouse button for drawing lines
-        self.canvas.bind("<Button-2>", self.mouse_wheel_button) #Mouse wheel button
+        # self.canvas.bind("<Button-3>", self.start_line) # Right mouse button for drawing lines
+        self.canvas.bind("<Button-2>", self.mouse_wheel_down) # 
+        self.canvas.bind("<B2-Motion>", self.mouse_wheel_down_pan) # Mouse wheel button
     
     # Load image file
     def set_image(self, filename):
@@ -79,7 +84,20 @@ class ImageViewer(tk.Frame):
     def mouse_down_left(self, event):
         self.__old_event = event
 
-    def mouse_move_left(self, event):
+    # Function to pan by pressing down LMB and dragging
+    def mouse_move_lesft(self, event):
+        if (self.pil_image == None):
+            return
+        self.translate(event.x - self.__old_event.x, event.y - self.__old_event.y)
+        self.redraw_image()
+        self.__old_event = event
+    
+    # Function that triggers new event once mouse wheel button is pressed
+    def mouse_wheel_down(self, event):
+        self.__old_event = event
+
+    # Function to pan by pressing down mouse wheel button
+    def mouse_wheel_down_pan(self, event):
         if (self.pil_image == None):
             return
         self.translate(event.x - self.__old_event.x, event.y - self.__old_event.y)
@@ -117,7 +135,7 @@ class ImageViewer(tk.Frame):
         mat[1, 1] = scale
         self.mat_affine = np.dot(mat, self.mat_affine)
     
-    # FUnction to zoom at cursor location
+    # Function to zoom at cursor location
     def scale_at(self, scale:float, cx:float, cy:float):
         self.translate(-cx, -cy)
         self.scale(scale)
@@ -194,7 +212,8 @@ class ImageViewer(tk.Frame):
         self.draw_image(self.pil_image)
 
 def main():
-    root = tk.Tk()
+    root = tk.Tk() # Top-level Tk widget (main window of application)
+    root.state("zoomed") # Setting window to maximized
     app = ImageViewer(master=root)
     app.mainloop()
 
