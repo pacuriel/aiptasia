@@ -1,15 +1,20 @@
 """
 Code adapted from PythonImageViewer on GH: https://github.com/ImagingSolution/PythonImageViewer
 """
-import tkinter as tk            
-from tkinter import filedialog, simpledialog  
-from PIL import Image, ImageTk  
-import math                    
-import numpy as np              
+# Python packages
+import tkinter as tk
+from tkinter import filedialog, simpledialog
+from PIL import Image, ImageTk
+import math
+import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-line_coords = []
+# 
+from user_actions import UserActions
+from image_transformations import ImageTransformations
+
+# line_coords = []
 
 """
 Current setup idea/modifications: 
@@ -28,6 +33,9 @@ Other possible features:
 - Set max zoom out such that entire image fits and is viewable (i.e. don't allow for infinite zoom out; seems pointless) 
 """
 
+VERSION_NUMBER = 0.1 # Version number of current application
+
+# Class representing image viewer application
 class ImageViewer(tk.Frame):
     
     # Initializing and setting window properties 
@@ -37,20 +45,24 @@ class ImageViewer(tk.Frame):
         self.pil_image = None 
         self.line_start = None
         self.my_title = "PyPointCounter"
+
+        self.user_actions = UserActions(master=self.master) # Object to control user actions
         
         self.create_menu()
-        self.create_widget()
 
-        self.reset_transform()
+        self.user_actions.create_widget()
+
+        self.user_actions.reset_transform()
     
-    # Menu bar
+    # Menu bar at top of application
     def create_menu(self):
         self.menu_bar = tk.Menu(self) # Menu
         self.file_menu = tk.Menu(self.menu_bar, tearoff = tk.OFF)
-        self.menu_bar.add_cascade(label="File", menu=self.file_menu)
+        self.menu_bar.add_cascade(label="File", menu=self.file_menu) # File option 
         self.file_menu.add_command(label="Open Image", command = self.menu_open_clicked)
         self.master.config(menu=self.menu_bar)
 
+    # Menu bar options
     def menu_open_clicked(self, event=None):
         filename = tk.filedialog.askopenfilename(
             filetypes = [("Image file", ".bmp .png .jpg .tif"), ("Bitmap", ".bmp"), ("PNG", ".png"), ("JPEG", ".jpg"), ("Tiff", ".tif") ],
@@ -59,88 +71,18 @@ class ImageViewer(tk.Frame):
 
         self.set_image(filename)
     
-    # Create canvas
-    def create_widget(self):
-        self.canvas = tk.Canvas(self.master, background="black")
-        self.canvas.pack(expand=True,  fill=tk.BOTH)
-        
-        # bindings
-        self.master.bind("<Button-1>", self.mouse_down_left) # MouseDown
-        # self.master.bind("<B1-Motion>", self.mouse_move_lesft) # MouseDrag
-        self.master.bind("<MouseWheel>", self.mouse_wheel) # MouseWheel
-        # self.canvas.bind("<Button-3>", self.start_line) # Right mouse button for drawing lines
-        self.canvas.bind("<Button-2>", self.mouse_wheel_down) # 
-        self.canvas.bind("<B2-Motion>", self.mouse_wheel_down_pan) # Mouse wheel button
-    
     # Load image file
     def set_image(self, filename):
         if not filename:
             return
         self.pil_image = Image.open(filename)
-        self.draw_image(self.pil_image)
+        self.user_actions.set_image = self.pil_image
+        self.user_actions.draw_image(self.pil_image)
         os.chdir(os.path.dirname(filename))
     
-    ### User actions
-    def mouse_down_left(self, event):
-        self.__old_event = event
+    
 
-    # Function to pan by pressing down LMB and dragging
-    def mouse_move_lesft(self, event):
-        if (self.pil_image == None):
-            return
-        self.translate(event.x - self.__old_event.x, event.y - self.__old_event.y)
-        self.redraw_image()
-        self.__old_event = event
-    
-    # Function that triggers new event once mouse wheel button is pressed
-    def mouse_wheel_down(self, event):
-        self.__old_event = event
-
-    # Function to pan by pressing down mouse wheel button
-    def mouse_wheel_down_pan(self, event):
-        if (self.pil_image == None):
-            return
-        self.translate(event.x - self.__old_event.x, event.y - self.__old_event.y)
-        self.redraw_image()
-        self.__old_event = event
-    
-    # zoom mouse wheel action
-    def mouse_wheel(self, event):
-        if self.pil_image == None:
-            return
-        if (event.delta > 0):
-            self.scale_at(1.25, event.x, event.y)
-        else:
-            self.scale_at(0.8, event.x, event.y)
-        self.redraw_image()
-
-    # Test function for when mouse wheel is clicked
-    def mouse_wheel_button(self, event): 
-        print("Mouse wheel button clicked!")
-
-    def reset_transform(self):
-        self.mat_affine = np.eye(3)
-    
-    # Pan
-    def translate(self, offset_x, offset_y):
-        mat = np.eye(3)
-        mat[0, 2] = float(offset_x)
-        mat[1, 2] = float(offset_y)
-        self.mat_affine = np.dot(mat, self.mat_affine)
-    
-    # Zoom base function
-    def scale(self, scale:float):
-        mat = np.eye(3)
-        mat[0, 0] = scale
-        mat[1, 1] = scale
-        self.mat_affine = np.dot(mat, self.mat_affine)
-    
-    # Function to zoom at cursor location
-    def scale_at(self, scale:float, cx:float, cy:float):
-        self.translate(-cx, -cy)
-        self.scale(scale)
-        self.translate(cx, cy)
-    
+    """
     # line drawing with two right mouse clicks - start and end points
     def start_line(self, event):
         if self.line_start is None:
@@ -152,33 +94,7 @@ class ImageViewer(tk.Frame):
             line_end = tuple([end_point_x, end_point_y])
             line_coords.append([line_start, line_end])
             self.line_start = None
-
-    # Update display according to user actions
-    def draw_image(self, pil_image):
-        
-        self.canvas.delete('all') # remove previously drawn lines
-        
-        # IMAGE TRANSFORMATION
-        if pil_image == None:
-            return
-
-        self.pil_image = pil_image
-
-        canvas_width = self.canvas.winfo_width()
-        canvas_height = self.canvas.winfo_height()
-        
-        mat_inv = np.linalg.inv(self.mat_affine)
-
-        affine_inv = (
-            mat_inv[0, 0], mat_inv[0, 1], mat_inv[0, 2],
-            mat_inv[1, 0], mat_inv[1, 1], mat_inv[1, 2]
-            )
-
-        dst = self.pil_image.transform((canvas_width, canvas_height),Image.AFFINE,affine_inv,Image.NEAREST)
-        im = ImageTk.PhotoImage(image=dst)
-        item = self.canvas.create_image(0, 0,anchor='nw',image=im)
-        self.image = im    
-        
+  
         # LINE COORDINATE TRANSFORMATION
         def transform_line_coords(i):
             original_coords = line_coords[i] # original coordinates
@@ -204,16 +120,13 @@ class ImageViewer(tk.Frame):
             self.canvas.create_line(x1,y1,x2,y2, fill='red')
         
         draw_lines = [draw_line(i) for i in range(0, len(line_coords))]
-        
-    def redraw_image(self):
-        if self.pil_image == None:
-            return
-        
-        self.draw_image(self.pil_image)
+        """
 
 def main():
     root = tk.Tk() # Top-level Tk widget (main window of application)
     root.state("zoomed") # Setting window to maximized
+    root.title(f"Image Viewer/Prompter v{VERSION_NUMBER}")
+
     app = ImageViewer(master=root)
     app.mainloop()
 
