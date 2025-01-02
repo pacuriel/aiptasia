@@ -53,13 +53,13 @@ class UserActions:
         self.redraw_image()
         self.__old_event = event
     
-    # zoom mouse wheel action
+    # Function to zoom based on mouse wheel action
     def mouse_wheel(self, event):
         if self.pil_image == None:
             return
-        if (event.delta > 0):
+        if (event.delta > 0): # Zoom in
             self.image_transformations.scale_at(1.25, event.x, event.y)
-        else:
+        else: # Zoom out
             self.image_transformations.scale_at(0.8, event.x, event.y)
         self.redraw_image()
 
