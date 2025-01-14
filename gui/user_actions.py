@@ -15,7 +15,7 @@ class UserActions:
 
     # Create canvas and setting button bindings
     def create_widget(self):
-        self.canvas = tk.Canvas(self.master, background="black")
+        self.canvas = tk.Canvas(self.master, background="black", cursor="spider")
         self.canvas.pack(expand=True,  fill=tk.BOTH)
         
         # bindings

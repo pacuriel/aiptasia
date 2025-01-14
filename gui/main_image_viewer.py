@@ -43,10 +43,10 @@ class ImageViewer(tk.Frame):
     # Initializing and setting window properties 
     def __init__(self, master=None):
         super().__init__(master)
-        self.master.geometry("600x400") 
+        # self.master.geometry("600x400")
         self.pil_image = None 
         self.line_start = None
-        self.my_title = "PyPointCounter"
+        # self.my_title = "PyPointCounter"
 
         self.user_actions = UserActions(master=self.master) # Object to control user actions
         
@@ -74,18 +74,18 @@ class ImageViewer(tk.Frame):
             filetypes = [("Image file", ".bmp .png .jpg .tif"), ("Bitmap", ".bmp"), ("PNG", ".png"), ("JPEG", ".jpg"), ("Tiff", ".tif") ],
             initialdir = os.getcwd()
             )
-
+        
         self.set_image(filename)
     
     # Load image file
     def set_image(self, filename):
         if not filename:
             return
-        # print(filename) #sanity check
+        ### Do we need to store the pil_image in both the main class and user_actions class???
         self.pil_image = Image.open(filename)
+
         self.user_actions.set_image(self.pil_image)
         self.user_actions.draw_image(self.pil_image)
-        # self.user_actions.redraw_image()
         os.chdir(os.path.dirname(filename))
 
 def main():
