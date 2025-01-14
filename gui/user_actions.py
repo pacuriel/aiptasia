@@ -32,17 +32,6 @@ class UserActions:
 
 
     ### User actions
-    # def mouse_down_left(self, event):
-    #     self.__old_event = event
-
-    # Function to pan by pressing down LMB and dragging
-    def mouse_move_left(self, event):
-        if (self.pil_image == None):
-            return
-        self.image_transformations.translate(event.x - self.__old_event.x, event.y - self.__old_event.y)
-        self.redraw_image()
-        self.__old_event = event
-    
     # Function that triggers new event once mouse wheel button is pressed
     def ctrl_lmb_down(self, event):
         self.__old_event = event
@@ -73,8 +62,7 @@ class UserActions:
 
     # Update display according to user actions
     def draw_image(self, pil_image):
-        
-        self.canvas.delete('all') # remove previously drawn lines
+        # self.canvas.delete('all') # remove previously drawn lines
         
         # IMAGE TRANSFORMATION
         if pil_image == None:
@@ -92,10 +80,10 @@ class UserActions:
             mat_inv[1, 0], mat_inv[1, 1], mat_inv[1, 2]
             )
 
-        dst = self.pil_image.transform((canvas_width, canvas_height),Image.AFFINE,affine_inv,Image.NEAREST)
+        dst = self.pil_image.transform((canvas_width, canvas_height), Image.AFFINE,affine_inv, Image.NEAREST)
         im = ImageTk.PhotoImage(image=dst)
-        item = self.canvas.create_image(0, 0,anchor='nw',image=im)
-        self.image = im    
+        item = self.canvas.create_image(0, 0,anchor='nw', image=im)
+        self.image = im
 
     # Function to set PIL image
     def set_image(self, pil_image):

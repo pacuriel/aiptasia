@@ -53,6 +53,10 @@ class ImageViewer(tk.Frame):
         self.user_actions.create_widget()
 
         self.user_actions.reset_transform()
+
+        # Below two lines used for faster testing) 
+        test_file = "C:/Users/tcuri/Documents/_UC Merced Documents/research/insite/code/gui/CC7.265.1.2023.10.13.png"
+        self.set_image(filename=test_file)
     
     # Menu bar at top of application
     def create_menu(self):
@@ -75,11 +79,12 @@ class ImageViewer(tk.Frame):
     def set_image(self, filename):
         if not filename:
             return
+        print(filename) #sanity check
         self.pil_image = Image.open(filename)
-        self.user_actions.set_image = self.pil_image
+        self.user_actions.set_image(self.pil_image)
         self.user_actions.draw_image(self.pil_image)
+        # self.user_actions.redraw_image()
         os.chdir(os.path.dirname(filename))
-    
     
 
     """
