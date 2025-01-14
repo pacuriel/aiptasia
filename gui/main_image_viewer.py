@@ -41,14 +41,14 @@ VERSION_NUMBER = 0.1 # Version number of current application
 class ImageViewer(tk.Frame):
     
     # Initializing and setting window properties 
-    def __init__(self, root=None):
-        super().__init__(root)
-        self.root.geometry("600x400") 
+    def __init__(self, master=None):
+        super().__init__(master)
+        self.master.geometry("600x400") 
         self.pil_image = None 
         self.line_start = None
         self.my_title = "PyPointCounter"
 
-        self.user_actions = UserActions(root=self.root) # Object to control user actions
+        self.user_actions = UserActions(master=self.master) # Object to control user actions
         
         self.create_menu()
 
@@ -66,7 +66,7 @@ class ImageViewer(tk.Frame):
         self.file_menu = tk.Menu(self.menu_bar, tearoff = tk.OFF)
         self.menu_bar.add_cascade(label="File", menu=self.file_menu) # File option 
         self.file_menu.add_command(label="Open Image", command = self.menu_open_clicked)
-        self.root.config(menu=self.menu_bar)
+        self.master.config(menu=self.menu_bar)
 
     # Menu bar options
     def menu_open_clicked(self, event=None):
@@ -93,7 +93,7 @@ def main():
     root.state("zoomed") # Setting window to maximized
     root.title(f"Image Viewer/Prompter v{VERSION_NUMBER}")
 
-    app = ImageViewer(root=root)
+    app = ImageViewer(master=root)
     app.mainloop()
 
 if __name__ == "__main__":

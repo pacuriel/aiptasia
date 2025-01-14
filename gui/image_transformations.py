@@ -21,9 +21,12 @@ class ImageTransformations:
     
     # Function to zoom at cursor location
     def scale_at(self, scale:float, cx:float, cy:float):
+        # Maximums for zooming in or out
         max_zoom_out_level = 0.5
-        # If max zoom out reached and trying to zoom out, do nothing 
-        if self.mat_affine[0, 0] <= max_zoom_out_level and scale < 1:
+        max_zoom_in_level = 100 #test
+
+        # If max zoom in/out reached and trying to zoom out, do nothing 
+        if (self.mat_affine[0, 0] <= max_zoom_out_level and scale < 1) or (self.mat_affine[0, 0] >= max_zoom_in_level and scale > 1):
             return False
         else: 
             self.translate(-cx, -cy)
