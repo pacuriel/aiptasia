@@ -22,16 +22,18 @@ class UserActions:
         self.canvas.pack(expand=True,  fill=tk.BOTH)
         
         # bindings
-        self.master.bind("<Button-1>", self.mouse_down_left) # MouseDown
+        # self.master.bind("<Button-1>", self.mouse_down_left) # MouseDown
         # self.master.bind("<B1-Motion>", self.mouse_move_lesft) # MouseDrag
         self.master.bind("<MouseWheel>", self.mouse_wheel) # MouseWheel
         # self.canvas.bind("<Button-3>", self.start_line) # Right mouse button for drawing lines
-        self.canvas.bind("<Button-2>", self.mouse_wheel_down) # 
-        self.canvas.bind("<B2-Motion>", self.mouse_wheel_down_pan) # Mouse wheel button
+        # self.canvas.bind("<Button-2>", self.mouse_wheel_down) # Mouse wheel button pressed
+        self.canvas.bind("<Control-Button-1>", self.ctrl_lmb_down) # Resets event when Control + LMB are pressed
+        self.canvas.bind("<Control-B1-Motion>", self.ctrl_lmb_down_pan) # Control + LMB motion for panning
+
 
     ### User actions
-    def mouse_down_left(self, event):
-        self.__old_event = event
+    # def mouse_down_left(self, event):
+    #     self.__old_event = event
 
     # Function to pan by pressing down LMB and dragging
     def mouse_move_left(self, event):
@@ -42,11 +44,11 @@ class UserActions:
         self.__old_event = event
     
     # Function that triggers new event once mouse wheel button is pressed
-    def mouse_wheel_down(self, event):
+    def ctrl_lmb_down(self, event):
         self.__old_event = event
 
-    # Function to pan by pressing down mouse wheel button
-    def mouse_wheel_down_pan(self, event):
+    # Function to pan by pressing down Control + LMB
+    def ctrl_lmb_down_pan(self, event):
         if (self.pil_image == None):
             return
         self.image_transformations.translate(event.x - self.__old_event.x, event.y - self.__old_event.y)
