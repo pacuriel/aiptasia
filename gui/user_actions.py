@@ -7,24 +7,21 @@ from image_transformations import ImageTransformations
 # Class to handle user actions (button presses, etc.)
 class UserActions:
 
-    def __init__(self, master):
+    def __init__(self, root):
         super().__init__()
-        
-        self.master = master
-
+        self.root = root
         self.image_transformations = ImageTransformations()
-
         self.pil_image = None
 
     # Create canvas and setting button bindings
     def create_widget(self):
-        self.canvas = tk.Canvas(self.master, background="black")
+        self.canvas = tk.Canvas(self.root, background="black")
         self.canvas.pack(expand=True,  fill=tk.BOTH)
         
         # bindings
-        # self.master.bind("<Button-1>", self.mouse_down_left) # MouseDown
-        # self.master.bind("<B1-Motion>", self.mouse_move_lesft) # MouseDrag
-        self.master.bind("<MouseWheel>", self.mouse_wheel) # MouseWheel
+        # self.root.bind("<Button-1>", self.mouse_down_left) # MouseDown
+        # self.root.bind("<B1-Motion>", self.mouse_move_lesft) # MouseDrag
+        self.root.bind("<MouseWheel>", self.mouse_wheel) # MouseWheel
         # self.canvas.bind("<Button-3>", self.start_line) # Right mouse button for drawing lines
         # self.canvas.bind("<Button-2>", self.mouse_wheel_down) # Mouse wheel button pressed
         self.canvas.bind("<Control-Button-1>", self.ctrl_lmb_down) # Resets event when Control + LMB are pressed
