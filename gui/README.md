@@ -11,5 +11,5 @@
     - Only load in PIL image for image currently being viewed
     - Store filenames of other images
     - Possibly use toolbar on the left showing all image filenames
-        - Display image when clicked
-- 
+        - Display image when specific filename clicked
+        
