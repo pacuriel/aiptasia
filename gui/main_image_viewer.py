@@ -43,8 +43,8 @@ class ImageViewer(tk.Frame):
     # Initializing and setting window properties 
     def __init__(self, master=None):
         super().__init__(master)
-        # self.master.geometry("600x400")
-        self.pil_image = None 
+        self.master.geometry("600x400")
+        self.pil_image = None
         self.line_start = None
         # self.my_title = "PyPointCounter"
 
@@ -57,7 +57,9 @@ class ImageViewer(tk.Frame):
         self.user_actions.reset_transform()
 
         # Below two lines used for faster testing) 
-        test_file = "C:/Users/tcuri/Documents/_UC Merced Documents/research/insite/code/gui/CC7.265.1.2023.10.13.png"
+        # test_file = "C:/Users/tcuri/Documents/_UC Merced Documents/research/insite/code/gui/CC7.265.1.2023.10.13.png"
+        test_file = "C:/Users/tcuri/Documents/_UC Merced Documents/research/insite/code/gui/segmented_cat_5.png"
+
         self.set_image(filename=test_file)
     
     # Menu bar at top of application

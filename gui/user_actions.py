@@ -6,9 +6,9 @@ from image_transformations import ImageTransformations
 
 # Class to handle user actions (button presses, etc.)
 class UserActions:
-
     def __init__(self, master):
-        super().__init__()
+        # super().__init__()
+
         self.master = master
         self.image_transformations = ImageTransformations()
         self.pil_image = None
@@ -39,6 +39,7 @@ class UserActions:
             return
         self.image_transformations.translate(event.x - self.__old_event.x, event.y - self.__old_event.y)
         self.redraw_image()
+        breakpoint()
         self.__old_event = event
     
     # Function to zoom based on mouse wheel action
@@ -50,6 +51,7 @@ class UserActions:
         else: # Zoom out
             self.image_transformations.scale_at(0.8, event.x, event.y)
         self.redraw_image()
+        # breakpoint()
 
     def redraw_image(self):
         if self.pil_image == None:
@@ -67,6 +69,7 @@ class UserActions:
 
         self.pil_image = pil_image
 
+        self.canvas.update()
         canvas_width = self.canvas.winfo_width()
         canvas_height = self.canvas.winfo_height()
         
@@ -77,10 +80,14 @@ class UserActions:
             mat_inv[1, 0], mat_inv[1, 1], mat_inv[1, 2]
             )
 
-        dst = self.pil_image.transform((canvas_width, canvas_height), Image.AFFINE,affine_inv, Image.NEAREST)
+        dst = self.pil_image.transform((canvas_width, canvas_height), Image.AFFINE, affine_inv, Image.NEAREST)
         im = ImageTk.PhotoImage(image=dst)
-        item = self.canvas.create_image(0, 0,anchor='nw', image=im)
+        #item = 
+        self.canvas.create_image(canvas_width / 2, canvas_height / 2, anchor='center', image=im)
         self.image = im
+        # breakpoint()
+
+        # self.canvas.update_idletasks()
 
     # Function to set PIL image
     def set_image(self, pil_image):
