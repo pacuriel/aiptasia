@@ -1,6 +1,6 @@
 # import tkinter as tk
 # import numpy as np
-# from PIL import Image, ImageTk
+from PIL import Image#, ImageTk
 
 from test_image_transformation import ImageTransformations
 
