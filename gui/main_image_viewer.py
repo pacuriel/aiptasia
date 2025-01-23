@@ -8,11 +8,13 @@ from PIL import Image, ImageTk
 import math
 import numpy as np
 import os
+import sys
 import matplotlib.pyplot as plt
 
 # 
 from user_actions import UserActions
 from image_transformations import ImageTransformations
+# from menu_bar import MenuBar
 
 # Dictionaries to store prompt image coords. Format = {'file_name': [(pixel_coords_tuple)]}
 pos_prompt_coords = dict() 
@@ -37,21 +39,27 @@ Other possible features:
 
 VERSION_NUMBER = 0.1 # Version number of current application
 
-# Class representing image viewer application
-class ImageViewer(tk.Frame):
+# Class representing main window of image viewer application
+class MainWindow(tk.Frame):
     
     # Initializing and setting window properties 
     def __init__(self, master=None):
         super().__init__(master)
-        self.master.geometry("600x400")
-        self.pil_image = None
-        self.line_start = None
-        # self.my_title = "PyPointCounter"
+        self.master.title(f'Image Viewer App v{VERSION_NUMBER}') # Window title
+        self.master.geometry("800x600") # Window size
+        self.pil_image = None # Stores PIL image
+        
+        # Making the ImageCanvas widget expandable
+        self.master.rowconfigure(0, weight=1)  
+        self.master.columnconfigure(0, weight=1)
 
         self.user_actions = UserActions(master=self.master) # Object to control user actions
         
+        # Creating functional menu bar
         self.create_menu()
-
+        # self.menu_bar = MenuBar(self.master)
+        # self.master.configure(menu=self.menu_bar)
+        
         self.user_actions.create_widget()
 
         self.user_actions.reset_transform()
@@ -93,9 +101,8 @@ class ImageViewer(tk.Frame):
 def main():
     root = tk.Tk() # Top-level Tk widget (main window of application)
     root.state("zoomed") # Setting window to maximized
-    root.title(f"Image Viewer/Prompter v{VERSION_NUMBER}")
 
-    app = ImageViewer(master=root)
+    app = MainWindow(master=root)
     app.mainloop()
 
 if __name__ == "__main__":

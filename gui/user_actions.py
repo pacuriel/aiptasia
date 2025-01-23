@@ -39,7 +39,7 @@ class UserActions:
             return
         self.image_transformations.translate(event.x - self.__old_event.x, event.y - self.__old_event.y)
         self.redraw_image()
-        breakpoint()
+        # breakpoint()
         self.__old_event = event
     
     # Function to zoom based on mouse wheel action
@@ -68,6 +68,8 @@ class UserActions:
             return
 
         self.pil_image = pil_image
+        # image_width = self.pil_image.size[0]
+        # image_height = self.pil_image.size[1]
 
         self.canvas.update()
         canvas_width = self.canvas.winfo_width()
@@ -81,6 +83,9 @@ class UserActions:
             )
 
         dst = self.pil_image.transform((canvas_width, canvas_height), Image.AFFINE, affine_inv, Image.NEAREST)
+        # dst = self.pil_image.transform((image_width, image_height), Image.AFFINE, affine_inv, Image.NEAREST)
+
+        # breakpoint()
         im = ImageTk.PhotoImage(image=dst)
         #item = 
         self.canvas.create_image(canvas_width / 2, canvas_height / 2, anchor='center', image=im)

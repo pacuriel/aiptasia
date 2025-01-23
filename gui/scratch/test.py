@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import sys
 
 root = tk.Tk()
 
@@ -75,3 +76,14 @@ def start_line(self, event):
     
     draw_lines = [draw_line(i) for i in range(0, len(line_coords))]
     """
+
+class MenuBar(tk.Menu):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        fileMenu = tk.Menu(self, tearoff=False)
+        self.add_cascade(label="File",underline=0, menu=fileMenu)
+        fileMenu.add_command(label="Exit", underline=1, command=self.exit_app)
+
+    def exit_app(self):
+        sys.exit(0)

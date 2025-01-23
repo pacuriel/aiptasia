@@ -12,4 +12,9 @@
     - Store filenames of other images
     - Possibly use toolbar on the left showing all image filenames
         - Display image when specific filename clicked
-        
+- Sort ALL GUI code (scratch, test, main, etc.)
+- Make better use of branches
+- Rewrite to make code more modular? 
+- Determine where to store prompt points
+    - Likely in own class
+- 
