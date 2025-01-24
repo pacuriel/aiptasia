@@ -7,7 +7,7 @@ import os
 # from image_transformations import ImageTransformations
 from test_user_actions import UserActions
 
-class TestApp(tk.Frame):
+class MainWindow(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
 
@@ -89,7 +89,7 @@ def main():
     root.state("zoomed")
     root.title("Test image viewer app")
     
-    app = TestApp(master=root)
+    app = MainWindow(master=root)
     app.mainloop() # Running app
 
 if __name__ == "__main__":
