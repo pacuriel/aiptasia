@@ -17,4 +17,4 @@
 - Rewrite to make code more modular? 
 - Determine where to store prompt points
     - Likely in own class
-- 
+- Possibly a third prompt point for edge cases (i.e. overlapping aiptasia, etc.)
