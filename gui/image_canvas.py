@@ -1,3 +1,7 @@
+"""
+Code adapted from: https://github.com/foobar167/junkyard/tree/master/manual_image_annotation1
+"""
+
 # Importing packages
 import tkinter as tk
 from PIL import Image, ImageTk
@@ -32,18 +36,29 @@ class ImageCanvas:
         # Creating rectangle container to store/track image on Canvas
         self.img_container = self.canvas.create_rectangle(0, 0, self.img_width, self.img_height, width=0)
 
+        self.__display_image() # Displaying image
         breakpoint()
 
+    ### Event bindings and associated functions
     # Binds keys to events
     def __bind_events(self) -> None:
             self.canvas.bind('<Button-1>', self.button_1_test)
-    
+            self.canvas.bind('<MouseWheel>', self.zoom_wheel) # Mouse wheel for zooming
+
     # Function to test key bidnings
     def button_1_test(self, event) -> None:
         print(f"Button 1 (LMB) pressed at {event.x, event.y}") # Sanity check
         self.__old_event = event # Updating previous event
 
+    # Zooms at current cursor location inside image
+    def zoom_wheel(self, event):
+
+        pass
+
+    def outside_img_region(self, event_x, event_y):
+        img_area = self.canvas.coords(self.container)
+        pass
+
     # Displays image on canvas
     def __display_image(self):
-        
         pass
