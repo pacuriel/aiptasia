@@ -18,3 +18,5 @@
 - Determine where to store prompt points
     - Likely in own class
 - Possibly a third prompt point for edge cases (i.e. overlapping aiptasia, etc.)
+- Use image pyramid for more efficient memory usage?
+- 
