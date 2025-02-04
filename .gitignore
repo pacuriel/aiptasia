@@ -8,3 +8,4 @@ experiments
 *.stdout
 *.stderr
 carvana_test
+manual_image_annotator
