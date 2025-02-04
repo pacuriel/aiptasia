@@ -16,16 +16,15 @@ class MainWindow(tk.Tk):
         """Configures the main window components."""
         self.state("zoomed") # Maximizing main window once opened 
 
-        # Setting application/window title
-        self.__application_title = "Aiptasia image viewer app"
-        self.title(self.__application_title) 
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
 
         # Creating primary frame inside window
         self.main_frame = MainFrame(master=self)
 
         # Creating menu bar
-        self.menu_bar = MenuBar(master=self)
-        self.configure(menu=self.menu_bar)
+        # self.menu_bar = MenuBar(master=self)
+        # self.configure(menu=self.menu_bar)
 
         ### Configure grid here or in main_frame?
         
