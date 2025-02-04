@@ -9,11 +9,12 @@ class MenuBar(tk.Menu):
         """Initializes menu bar class.
         
         Args:
-            master: parent widget of menu bar
+            master: parent widget of menu bar.
         """
         super().__init__(master=master)
 
-        self.master = master
+        self.master = master # Parent widget
+        self.helper_funcs = helper_funcs # Helper functionss
 
         self.file_name = None
 
@@ -24,7 +25,7 @@ class MenuBar(tk.Menu):
         # File button
         self.file_menu = tk.Menu(master=self, tearoff=tk.OFF)
         self.add_cascade(label='File', menu=self.file_menu, underline=0)
-        self.file_menu.add_command(label="Open Image", command=self.add_image_clicked)
+        self.file_menu.add_command(label="Open Image", command=self.helper_funcs)
         
         # self.file_menu.add_command(label="Exit", underline=1, command=self.quit) # Exits application
         
@@ -34,9 +35,8 @@ class MenuBar(tk.Menu):
             filetypes = [("Image file", ".bmp .png .jpg .tif"), ("Bitmap", ".bmp"), ("PNG", ".png"), ("JPEG", ".jpg"), ("Tiff", ".tif") ],
             initialdir = os.getcwd()
             )
-        
+        ### Note: switch above to filenames for multiple files
         self.file_name = file_name
-        # print(self.file_name)
 
     # Exits application
     def quit_app(self) -> None: 
