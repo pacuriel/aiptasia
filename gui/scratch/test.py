@@ -5,12 +5,12 @@ import sys
 root = tk.Tk()
 
 #displaying an image in GUI
-canvas = tk.Canvas(root, width=1280, height=720)
-canvas.pack()
-img_file = "CC7.265.1.2023.10.13.png"
-img = tk.PhotoImage(file=img_file)
-canvas.create_image(10,10, anchor=tk.NW, image=img)
-root.mainloop()
+# canvas = tk.Canvas(root, width=1280, height=720)
+# canvas.pack()
+# img_file = "segmented_cat_5.png"
+# img = tk.PhotoImage(file=img_file)
+# canvas.create_image(10,10, anchor=tk.NW, image=img)
+# root.mainloop()
 
 #building basic hello world GUI
 # frame = ttk.Frame(root, padding=50)
@@ -87,3 +87,71 @@ class MenuBar(tk.Menu):
 
     def exit_app(self):
         sys.exit(0)
+
+"""
+box_image = self.canvas.coords(self.img_container)  # get image area
+        box_canvas = (self.canvas.canvasx(0),  # get visible area of the canvas
+                      self.canvas.canvasy(0),
+                      self.canvas.canvasx(self.canvas.winfo_width()),
+                      self.canvas.canvasy(self.canvas.winfo_height()))
+        box_img_int = tuple(map(int, box_image))  # convert to integer or it will not work properly
+        
+        # Get scroll region box
+        box_scroll = [min(box_img_int[0], box_canvas[0]), min(box_img_int[1], box_canvas[1]),
+                      max(box_img_int[2], box_canvas[2]), max(box_img_int[3], box_canvas[3])]
+        
+        # Horizontal part of the image is in the visible area
+        if  box_scroll[0] == box_canvas[0] and box_scroll[2] == box_canvas[2]:
+            box_scroll[0]  = box_img_int[0]
+            box_scroll[2]  = box_img_int[2]
+        
+        # Vertical part of the image is in the visible area
+        if  box_scroll[1] == box_canvas[1] and box_scroll[3] == box_canvas[3]:
+            box_scroll[1]  = box_img_int[1]
+            box_scroll[3]  = box_img_int[3]
+        
+        # Convert scroll region to tuple and to integer
+        self.canvas.configure(scrollregion=tuple(map(int, box_scroll)))  # set scroll region
+        
+        # get coordinates (x1,y1,x2,y2) of the image tile
+        x1 = max(box_canvas[0] - box_image[0], 0)  
+        y1 = max(box_canvas[1] - box_image[1], 0)
+        x2 = min(box_canvas[2], box_image[2]) - box_image[0]
+        y2 = min(box_canvas[3], box_image[3]) - box_image[1]
+
+        # show image if it in the visible area
+        if int(x2 - x1) > 0 and int(y2 - y1) > 0:  
+            # image = self.__pyramid[max(0, self.__curr_img)].crop(  # crop current img from pyramid
+            #                     (int(x1 / self.__scale), int(y1 / self.__scale),
+            #                         int(x2 / self.__scale), int(y2 / self.__scale)))
+            image = self.pil_image
+            tk_image = ImageTk.PhotoImage(image.resize((int(x2 - x1), int(y2 - y1)), self.__filter))
+            imageid = self.canvas.create_image(max(box_canvas[0], box_img_int[0]),
+                                               max(box_canvas[1], box_img_int[1]),
+                                               anchor='nw', image=tk_image)
+            self.canvas.lower(imageid)  # set image into background
+            self.canvas.tk_image = tk_image  # keep an extra reference to prevent garbage-collection
+"""
+
+import tkinter as tk
+
+def start_drag(event):
+    canvas.scan_mark(event.x, event.y)
+
+def drag(event):
+    canvas.scan_dragto(event.x, event.y, gain=1)
+
+root = tk.Tk()
+
+canvas = tk.Canvas(root, width=400, height=400)
+canvas.pack()
+
+# Create some items on the canvas
+canvas.create_rectangle(50, 50, 150, 150, fill="blue")
+canvas.create_oval(200, 200, 300, 300, fill="red")
+
+# Bind mouse events for dragging
+canvas.bind("<ButtonPress-1>", start_drag)
+canvas.bind("<B1-Motion>", drag)
+
+root.mainloop()
