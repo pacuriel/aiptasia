@@ -1,3 +1,4 @@
+"""Main application frame inside the main window (aka where the magic happens)."""
 # Importing packages
 import tkinter as tk
 from tkinter.filedialog import askopenfilename
@@ -12,18 +13,18 @@ from utils import is_image
 class MainFrame(tk.Frame):
     """Class representing main frame inside main window."""
     def __init__(self, master) -> None:
-        """Initialize the frame.
+        """Initialize the main application frame.
         
         Args:
             master: A Tkinter widget to be the parent of the MainFrame object.
         """
-        super().__init__()
+        super().__init__(master=master)
 
         self.master = master # Parent widget (likely tk.Tk)
 
-        self.__img_frame = None # Frame to show image
+        self.__img_frame = None # Frame to show image in
         
-        self.__setup_main_window()
+        self.__setup_main_window() # Setting up main window
         self.__create_widgets() # Creating application widgets
 
         ### Below is for testing purposes
@@ -37,14 +38,13 @@ class MainFrame(tk.Frame):
 
     def __create_widgets(self):
         """Creates main window and frame widgets."""
-
-        # Dictionary with links to helper functions for menubar
+        # Dictionary with links to helper functions for MenuBar
         self.menu_funcs = { 
             "open_image": self.__open_image
         }
 
-        # Creating menu widget
-        self.__menu_bar = MenuBar(master=self.master, helper_funcs=self.__open_image)
+        # Creating menu bar widget
+        self.__menu_bar = MenuBar(master=self.master, helper_funcs=self.menu_funcs)
         self.master.configure(menu=self.__menu_bar)
 
     def __open_image(self) -> None:
@@ -69,8 +69,6 @@ class MainFrame(tk.Frame):
 
         self.__set_image(image_path=image_path)
 
-        # self.__close_image() # Closing previously opened image
-
     def __set_image(self, image_path) -> None:
         """Sets a newly selected image and closes previously opened image.
         
@@ -79,11 +77,13 @@ class MainFrame(tk.Frame):
         """
         self.__close_image() # Closing previously opened image
 
-        # Creating image frame
-        self.__img_frame = ImageCanvas(master=self.master, image_file=image_path)
-
         # Update window title
         self.master.title(self.__application_title + f" - Current file: {image_path}")
+
+        # Creating image frame
+        self.__img_frame = ImageCanvas(master=self.master, image_file=image_path)
+        self.__img_frame.grid() ### Sanity check
+
     
     def __close_image(self) -> None:
         """Closes previously opened image."""
