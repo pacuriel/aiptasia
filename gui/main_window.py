@@ -12,8 +12,7 @@ class MainWindow(tk.Tk):
 
         self.__configure_main_window() # Configuring main window
 
-        # Creating primary frame inside main window
-        self.main_frame = MainFrame(master=self)
+        self.create_main_frame()
 
     def __configure_main_window(self) -> None:
         """Configures the main window components."""
@@ -24,3 +23,10 @@ class MainWindow(tk.Tk):
         self.columnconfigure(0, weight=1)
 
         ### What else should we do here? 
+
+    def create_main_frame(self) -> None:
+        """Create main frame inside main window and configure."""
+        self.main_frame = MainFrame(master=self)
+        self.main_frame.grid(row=0, column=0, sticky='nswe')
+        self.main_frame.rowconfigure(0, weight=1)
+        self.main_frame.columnconfigure(0, weight=1)

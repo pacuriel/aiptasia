@@ -14,13 +14,13 @@ TODO:
 """
 
 class ImageCanvas:
-    """ Display and zoom image """
+    """Display and zoom image."""
     def __init__(self, master, image_file):
-        """ Initialize the ImageFrame """
+        """Initialize the ImageFrame."""
 
-        self.__get_canvas_variables(image_file)
+        self.__get_canvas_variables(image_file) # Storing variables relevant to canvas
 
-        self.__create_canvas_widget(master=master) # Creating canvas widget inside frame widget
+        self.__create_canvas_widgets(master=master) # Creating canvas widget inside frame widget
 
         self.__bind_events() # Binding events to canvas widget
        
@@ -33,7 +33,7 @@ class ImageCanvas:
         self.canvas.focus_set()  # set focus on the canvas
 
     # Rename below function?
-    def __get_canvas_variables(self, image_file):
+    def __get_canvas_variables(self, image_file) -> None:
         """Stores class variables relevant to image canvas.
         
         Args:
@@ -52,9 +52,10 @@ class ImageCanvas:
         
         self.min_side = min(self.imwidth, self.imheight)  # get the smaller image side
 
-    def __create_canvas_widget(self, master):
-        self.master = master
-        self.application_title = self.master.title()
+    def __create_canvas_widgets(self, master) -> None:
+        self.main_frame = master
+        self.main_window = self.main_frame.master
+        self.application_title = self.main_window.title()
 
         # Create ImageFrame in master widget
         self.imframe = ttk.Frame(master)  # master of the ImageFrame object
@@ -73,22 +74,35 @@ class ImageCanvas:
         hbar.configure(command=self.scroll_x)  # bind scrollbars to the canvas
         vbar.configure(command=self.scroll_y)
 
-    def __bind_events(self):
-        # Bind events to the Canvas
-        self.canvas.bind('<Configure>', lambda event: self.show_image())  # canvas is resized
-        self.canvas.bind('<ButtonPress-1>', self.move_from)  # remember canvas position
-        self.canvas.bind('<B1-Motion>',     self.move_to)  # move canvas to the new position
-        self.canvas.bind('<MouseWheel>', self.wheel)  # zoom for Windows and MacOS, but not Linux
-        self.canvas.bind('<Button-5>',   self.wheel)  # zoom for Linux, wheel scroll down
-        self.canvas.bind('<Button-4>',   self.wheel)  # zoom for Linux, wheel scroll up
-        self.canvas.bind('<Motion>', self.print_image_coords)
+    def __bind_events(self) -> None:
+        """Binds user actions to events."""
+        # Panning, zooming, etc.
+        self.canvas.bind('<Configure>', lambda event: self.show_image())  # Canvas is resized
+        self.canvas.bind('<Control-Button-1>', self.move_from)  # Remember canvas position
+        self.canvas.bind('<Control-B1-Motion>',     self.move_to)  # Move canvas to the new position
+        self.canvas.bind('<MouseWheel>', self.wheel)  # Zoom for Windows and MacOS, but not Linux
+        # self.canvas.bind('<Button-5>',   self.wheel)  # Zoom for Linux, wheel scroll down
+        # self.canvas.bind('<Button-4>',   self.wheel)  # zoom for Linux, wheel scroll up
+        self.canvas.bind('<Motion>', self.__display_image_coords) 
 
         # Handle keystrokes in idle mode, because program slows down on a weak computers,
         # when too many key stroke events in the same time
         self.canvas.bind('<Key>', lambda event: self.canvas.after_idle(self.keystroke, event))
+
+        self.canvas.bind('<Button-1>', self.place_pos_prompt)
     
-    def print_image_coords(self, event) -> None:
-        """Stores coordinates of cursor relevant to image.
+    def place_pos_prompt(self, event) -> None:
+        """Place a positive point prompt on the image at cursor location."""
+        # Convert event coords to canvas coords
+        x_canvas = self.canvas.canvasx(event.x)
+        y_canvas = self.canvas.canvasy(event.y)
+
+        # Do nothing if outside of image region
+        if self.outside(x_canvas, y_canvas):
+            return
+
+    def __display_image_coords(self, event) -> None:
+        """Displays coordinates of cursor relevant to image at top of main window.
         
         Args: 
             event: Tkinter user-triggered event
@@ -99,7 +113,7 @@ class ImageCanvas:
 
         # Checks if cursor is outside image area
         if self.outside(x_canvas, y_canvas):
-            self.master.title(self.application_title)
+            self.main_window.title(self.application_title)
             return
         
         # Obtain current image coordinates
@@ -112,7 +126,7 @@ class ImageCanvas:
             y_image = int(y_image * (self.reduction**self.curr_img))
 
         # Update window title
-        self.master.title(self.application_title + f" - Coordinates: ({int(x_image)}, {int(y_image)})")
+        self.main_window.title(self.application_title + f" - Coordinates: ({int(x_image)}, {int(y_image)})")
 
     def __create_image_pyramid(self) -> list:
         """Creates image pyramid and stores in class variable."""
@@ -135,7 +149,7 @@ class ImageCanvas:
             self.pyramid.append(self.pyramid[-1].resize((int(w), int(h)), self.filter))
 
     def show_image(self):
-        """ Show image on the Canvas. Implements correct image zoom almost like in Google Maps """
+        """Show image on the Canvas. Implements correct image zoom almost like in Google Maps."""
         box_image = self.canvas.coords(self.container)  # get image area
         box_canvas = (self.canvas.canvasx(0),  # get visible area of the canvas
                       self.canvas.canvasy(0),
@@ -177,46 +191,37 @@ class ImageCanvas:
             self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
         
     def redraw_figures(self):
-        """ Dummy function to redraw figures in the children classes """
+        """Dummy function to redraw figures in the children classes."""
         pass
-
+        
     def grid(self, **kw):
-        """ Put CanvasImage widget on the master widget """
+        """Put CanvasImage widget on the master widget."""
         self.imframe.grid(**kw)  # place CanvasImage widget on the grid
-        self.imframe.grid(sticky='nswe')  # make frame container sticky
-        self.imframe.rowconfigure(0, weight=1)  # make canvas expandable
+        self.imframe.grid(sticky='nswe')  # Make frame container sticky
+        self.imframe.rowconfigure(0, weight=1)  # Make canvas expandable
         self.imframe.columnconfigure(0, weight=1)
-
-    ### Are the below two functions necessary? 
-    def pack(self, **kw):
-        """ Exception: cannot use pack with this widget """
-        raise Exception('Cannot use pack with the widget ' + self.__class__.__name__)
-
-    def place(self, **kw):
-        """ Exception: cannot use place with this widget """
-        raise Exception('Cannot use place with the widget ' + self.__class__.__name__)
-
+   
     def scroll_x(self, *args, **kwargs):
-        """ Scroll canvas horizontally and redraw the image """
+        """Scroll canvas horizontally and redraw the image."""
         self.canvas.xview(*args)  # scroll horizontally
         self.show_image()  # redraw the image
 
     def scroll_y(self, *args, **kwargs):
-        """ Scroll canvas vertically and redraw the image """
+        """Scroll canvas vertically and redraw the image."""
         self.canvas.yview(*args)  # scroll vertically
         self.show_image()  # redraw the image
 
     def move_from(self, event):
-        """ Remember previous coordinates for scrolling with the mouse """
+        """Remember previous coordinates for scrolling with the mouse """
         self.canvas.scan_mark(event.x, event.y)
 
     def move_to(self, event):
-        """ Drag (move) canvas to the new position """
+        """Drag (move) canvas to the new position."""
         self.canvas.scan_dragto(event.x, event.y, gain=1)
         self.show_image()  # zoom tile and show it on the canvas
 
     def outside(self, x, y):
-        """ Checks if the point (x,y) is outside the image area """
+        """Checks if the point (x,y) is outside the image area."""
         bbox = self.canvas.coords(self.container)  # get image area
         if bbox[0] < x < bbox[2] and bbox[1] < y < bbox[3]:
             return False  # point (x,y) is inside the image area
@@ -224,7 +229,7 @@ class ImageCanvas:
             return True  # point (x,y) is outside the image area
 
     def wheel(self, event):
-        """ Zoom with mouse wheel """
+        """Zoom with mouse wheel."""
         x = self.canvas.canvasx(event.x)  # get coordinates of the event on the canvas
         y = self.canvas.canvasy(event.y)
         if self.outside(x, y): return  # zoom only inside image area
@@ -252,8 +257,8 @@ class ImageCanvas:
         self.show_image()
 
     def keystroke(self, event):
-        """ Scrolling with the keyboard.
-            Independent from the language of the keyboard, CapsLock, <Ctrl>+<key>, etc. """
+        """Scrolling with the keyboard.
+            Independent from the language of the keyboard, CapsLock, <Ctrl>+<key>, etc."""
         if event.state - self.previous_state == 4:  # means that the Control key is pressed
             pass  # do nothing if Control key is pressed
         else:
@@ -269,11 +274,11 @@ class ImageCanvas:
                 self.scroll_y('scroll',  1, 'unit', event=event)
 
     def crop(self, bbox):
-        """ Crop rectangle from the image and return it """
+        """Crop rectangle from the image and return it."""
         return self.pyramid[0].crop(bbox)
 
     def destroy(self):
-        """ ImageFrame destructor """
+        """ImageFrame destructor."""
         self.image.close()
         for img in self.pyramid:
             img.close()
@@ -282,3 +287,12 @@ class ImageCanvas:
         del self.pyramid  # delete pyramid variable
         self.canvas.destroy()
         self.imframe.destroy()
+
+    ### Are the below two functions necessary? 
+    def pack(self, **kw):
+        """Exception: cannot use pack with this widget."""
+        raise Exception('Cannot use pack with the widget ' + self.__class__.__name__)
+
+    def place(self, **kw):
+        """Exception: cannot use place with this widget."""
+        raise Exception('Cannot use place with the widget ' + self.__class__.__name__)

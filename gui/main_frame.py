@@ -1,6 +1,7 @@
 """Main application frame inside the main window (aka where the magic happens)."""
 # Importing packages
 import tkinter as tk
+from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 from tkinter import messagebox
 import os
@@ -10,7 +11,7 @@ from menu_bar import MenuBar
 from image_canvas import ImageCanvas
 from utils import is_image
 
-class MainFrame(tk.Frame):
+class MainFrame(ttk.Frame):
     """Class representing main frame inside main window."""
     def __init__(self, master) -> None:
         """Initialize the main application frame.
@@ -80,10 +81,9 @@ class MainFrame(tk.Frame):
         # Update window title
         self.master.title(self.__application_title + f" - Current file: {image_path}")
 
-        # Creating image frame
-        self.__img_frame = ImageCanvas(master=self.master, image_file=image_path)
+        # Creating and displaying image frame object
+        self.__img_frame = ImageCanvas(master=self, image_file=image_path)
         self.__img_frame.grid() ### Sanity check
-
     
     def __close_image(self) -> None:
         """Closes previously opened image."""
