@@ -47,10 +47,15 @@ class ImageCanvas:
         self.image_file = image_file  # image_file to the image, should be public for outer classes
 
         self.image = Image.open(self.image_file)  # open image, but down't load it
-
         self.imwidth, self.imheight = self.image.size  # public for outer classes
-        
         self.min_side = min(self.imwidth, self.imheight)  # get the smaller image side
+
+        # Used to store point prompts
+        self.pos_prompt_pts = []
+        self.pos_prompt_items = []
+        self.neg_prompt_pts = []
+        self.neg_prompt_items = []
+        
 
     def __create_canvas_widgets(self, master) -> None:
         self.main_frame = master
@@ -90,7 +95,9 @@ class ImageCanvas:
         self.canvas.bind('<Key>', lambda event: self.canvas.after_idle(self.keystroke, event))
 
         self.canvas.bind('<Button-1>', self.place_pos_prompt)
+        self.canvas.bind('<Button-3>', self.place_neg_prompt)
     
+    ### Prompting
     def place_pos_prompt(self, event) -> None:
         """Place a positive point prompt on the image at cursor location."""
         # Convert event coords to canvas coords
@@ -100,6 +107,94 @@ class ImageCanvas:
         # Do nothing if outside of image region
         if self.outside(x_canvas, y_canvas):
             return
+        
+        ### Convert to image coords and store
+        x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
+        self.pos_prompt_pts.append((x_image, y_image)) # Storing positive prompt coords
+        
+        self.draw_point_prompts() # Drawing point prompt on canvas
+    
+    def place_neg_prompt(self, event) -> None:
+        """Places a negative point prmpt"""
+        # Convert event coords to canvas coords
+        x_canvas = self.canvas.canvasx(event.x)
+        y_canvas = self.canvas.canvasy(event.y)
+
+        # Do nothing if outside of image region
+        if self.outside(x_canvas, y_canvas):
+            return
+        
+        ### Convert to image coords and store
+        x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
+        self.neg_prompt_pts.append((x_image, y_image)) # Storing positive prompt coords
+        
+        self.draw_point_prompts() # Drawing point prompt on canvas
+    
+    def draw_point_prompts(self) -> None:
+        """Draws a point prompt on the canvas."""
+        # prompt_color = "green" if is_pos else "red" # Color of point prompt
+        # r = 5 # Radius of prompt
+
+        # Remove previous points on canvas
+        for prompt in self.pos_prompt_items + self.neg_prompt_items:
+            self.canvas.delete(prompt)
+
+        # Removing all items from prompt lists
+        self.pos_prompt_items.clear()
+        self.neg_prompt_items.clear()
+
+        # Redrawing positive prompts
+        for x_image, y_image in self.pos_prompt_pts:
+            # Converting to canvas coords
+            x_canvas, y_canvas = self.image_to_canvas_coords(x_image, y_image)
+            
+            # Redrawing positive prompt
+            prompt_color = "green"
+            prompt_item = self.draw_point(x_canvas, y_canvas, prompt_color)
+
+        # Redrawing negative prompts
+        for x_image, y_image in self.neg_prompt_pts:
+            # Converting to canvas coords
+            x_canvas, y_canvas = self.image_to_canvas_coords(x_image, y_image)
+            
+            # Redrawing negative prompt
+            prompt_color = "red"
+            prompt_item = self.draw_point(x_canvas, y_canvas, prompt_color)
+
+        # Placing prompt
+        # prompt = self.canvas.create_oval(x - r, y - r, x + r, y + r, fill=prompt_color, outline="black")
+
+        # Storing canvas oval object
+        # if is_pos: 
+        #     self.pos_prompts.append(prompt)
+        # else:
+        #     self.neg_prompts.append(prompt)
+
+    def draw_point(self, x, y, color):
+        r = max(3, 5 * self.scale) # Radius of point
+        return self.canvas.create_oval(x - r, y - r, x + r, y + r, fill=color, outline="black")
+
+    def canvas_to_image_coords(self, x_canvas, y_canvas):
+        """Converts canvas coordinates to image coordinates.
+        
+        Args:
+            x_canvas: canvas x-coordinate
+            y_canvas: canvas y-coordinate
+        Returns:
+            Tuple containing converted image coordinates.   
+            """
+        x_image = (x_canvas - self.canvas.coords(self.container)[0]) / self.scale
+        y_image = (y_canvas - self.canvas.coords(self.container)[1]) / self.scale
+        return (x_image, y_image)
+    
+    def image_to_canvas_coords(self, x_image, y_image):
+        """Converts image coordinates to canvas coordinates."""
+        x_canvas = self.canvas.coords(self.container)[0] + (x_image * self.scale)
+        y_canvas = self.canvas.coords(self.container)[1] + (y_image * self.scale)
+        return x_canvas, y_canvas
+
+    def redraw_points(self):
+        pass
 
     def __display_image_coords(self, event) -> None:
         """Displays coordinates of cursor relevant to image at top of main window.
@@ -117,8 +212,7 @@ class ImageCanvas:
             return
         
         # Obtain current image coordinates
-        x_image = (x_canvas - self.canvas.coords(self.container)[0]) / self.scale
-        y_image = (y_canvas - self.canvas.coords(self.container)[1]) / self.scale
+        x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas)
 
         # Account for image pyramid
         if self.curr_img != 0: 
@@ -254,7 +348,8 @@ class ImageCanvas:
         self.canvas.scale('all', x, y, scale, scale)  # rescale all objects
         # Redraw some figures before showing image on the screen
         self.redraw_figures()  # method for child classes
-        self.show_image()
+        self.show_image() # Displaying image
+        self.draw_point_prompts() # Redrawing point prompts
 
     def keystroke(self, event):
         """Scrolling with the keyboard.
