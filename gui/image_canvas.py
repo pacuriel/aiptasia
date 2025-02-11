@@ -156,6 +156,9 @@ class ImageCanvas:
             prompt_item = self.draw_point(x_canvas, y_canvas, prompt_color)
             self.pos_prompt_items.append(prompt_item)
 
+            # Making prompt clickable
+            # self.canvas.tag_bind(prompt_item, "<Button-1>", self.prompt_click_test)
+
         # Redrawing negative prompts
         for x_image, y_image in self.neg_prompt_pts:
             # Accounting for image pyramid
@@ -169,6 +172,12 @@ class ImageCanvas:
             prompt_color = "red"
             prompt_item = self.draw_point(x_canvas, y_canvas, prompt_color)
             self.neg_prompt_items.append(prompt_item)
+
+    def prompt_click_test(self, event):
+        # self.canvas.delete(self.pos_prompt_items[-1]) # Avoiding adding an extra prompt
+        # self.pos_prompt_items.pop()
+        # self.pos_prompt_pts.pop()
+        print("Positive prompt clicked")
 
     def draw_point(self, x, y, color):
         r = max(3, 5 * self.scale) # Radius of point
@@ -330,12 +339,13 @@ class ImageCanvas:
 
         # Respond to Linux (event.num) or Windows (event.delta) wheel event
         if event.num == 5 or event.delta == -120:  # scroll down, smaller
-            if round(self.min_side * self.imscale) < 30: return  # image is less than 30 pixels
+            if round(self.min_side * self.imscale) < 250: return  # image is less than 250 pixels
             self.imscale /= self.delta
             scale        /= self.delta
         if event.num == 4 or event.delta == 120:  # scroll up, bigger
             i = min(self.canvas.winfo_width(), self.canvas.winfo_height()) >> 1
-            if i < self.imscale: return  # 1 pixel is bigger than the visible area
+            # if i < self.imscale: return  # 1 pixel is bigger than the visible area
+            if self.imscale > 12: return
             self.imscale *= self.delta
             scale        *= self.delta
 
@@ -345,10 +355,10 @@ class ImageCanvas:
         self.scale = k * math.pow(self.reduction, max(0, self.curr_img))
 
         self.canvas.scale('all', x, y, scale, scale)  # rescale all objects
+
         # Redraw some figures before showing image on the screen
         self.redraw_figures()  # method for child classes
         self.show_image() # Displaying image
-        print("Scaling factor", self.scale)
         self.draw_point_prompts() # Redrawing point prompts
 
     def keystroke(self, event):
