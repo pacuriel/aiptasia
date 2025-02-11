@@ -111,7 +111,7 @@ class ImageCanvas:
         ### Convert to image coords and store
         x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
         self.pos_prompt_pts.append((x_image, y_image)) # Storing positive prompt coords
-        print(f"Positive point prompt place at ({x_image}, {y_image})!") #sanitycheck
+        # print(f"Positive point prompt place at ({x_image}, {y_image})!") #sanitycheck
         
         self.draw_point_prompts() # Drawing point prompt on canvas
     
@@ -128,7 +128,8 @@ class ImageCanvas:
         ### Convert to image coords and store
         x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
         self.neg_prompt_pts.append((x_image, y_image)) # Storing positive prompt coords
-        print(f"Negative point prompt place at ({x_image}, {y_image})!") #sanitycheck
+        # print(f"Negative point prompt place at ({x_image}, {y_image})!") #sanitycheck
+        
         self.draw_point_prompts() # Drawing point prompt on canvas
     
     def draw_point_prompts(self) -> None:
@@ -144,16 +145,9 @@ class ImageCanvas:
         # Redrawing positive prompts
         for x_image, y_image in self.pos_prompt_pts:
             # Accounting for image pyramid
-            # if self.curr_img < 0:
-            # Update value of curr image
             x_image /= self.reduction**max(0, self.curr_img)
             y_image /= self.reduction**max(0, self.curr_img)
-            # else: 
-            #     x_image *= self.reduction**self.curr_img
-            #     y_image *= self.reduction**self.curr_img
             
-            print("Image coords", x_image, y_image)
-
             # Converting to canvas coords
             x_canvas, y_canvas = self.image_to_canvas_coords(x_image, y_image)
             
@@ -164,6 +158,10 @@ class ImageCanvas:
 
         # Redrawing negative prompts
         for x_image, y_image in self.neg_prompt_pts:
+            # Accounting for image pyramid
+            x_image /= self.reduction**max(0, self.curr_img)
+            y_image /= self.reduction**max(0, self.curr_img)
+            
             # Converting to canvas coords
             x_canvas, y_canvas = self.image_to_canvas_coords(x_image, y_image)
             
@@ -195,11 +193,7 @@ class ImageCanvas:
         """Converts image coordinates to canvas coordinates."""
         x_canvas = self.canvas.coords(self.container)[0] + (x_image * self.scale)
         y_canvas = self.canvas.coords(self.container)[1] + (y_image * self.scale)
-        print("Canvas coords:", x_canvas, y_canvas)
         return x_canvas, y_canvas
-
-    def redraw_points(self):
-        pass
 
     def __display_image_coords(self, event) -> None:
         """Displays coordinates of cursor relevant to image at top of main window.
@@ -354,7 +348,7 @@ class ImageCanvas:
         # Redraw some figures before showing image on the screen
         self.redraw_figures()  # method for child classes
         self.show_image() # Displaying image
-        print("Curr image", self.curr_img)
+        print("Scaling factor", self.scale)
         self.draw_point_prompts() # Redrawing point prompts
 
     def keystroke(self, event):
