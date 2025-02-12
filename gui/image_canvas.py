@@ -56,7 +56,6 @@ class ImageCanvas:
         self.neg_prompt_pts = []
         self.neg_prompt_items = []
         
-
     def __create_canvas_widgets(self, master) -> None:
         self.main_frame = master
         self.main_window = self.main_frame.master
@@ -88,7 +87,7 @@ class ImageCanvas:
         self.canvas.bind('<MouseWheel>', self.wheel)  # Zoom for Windows and MacOS, but not Linux
         # self.canvas.bind('<Button-5>',   self.wheel)  # Zoom for Linux, wheel scroll down
         # self.canvas.bind('<Button-4>',   self.wheel)  # zoom for Linux, wheel scroll up
-        self.canvas.bind('<Motion>', self.__display_image_coords) 
+        # self.canvas.bind('<Motion>', self.__display_image_coords) ### Commented out for testing
 
         # Handle keystrokes in idle mode, because program slows down on a weak computers,
         # when too many key stroke events in the same time
@@ -103,7 +102,9 @@ class ImageCanvas:
         # Convert event coords to canvas coords
         x_canvas = self.canvas.canvasx(event.x)
         y_canvas = self.canvas.canvasy(event.y)
-
+        # canvas_prompt_coords = x_canvas, y_canvas
+        # print("Canvas coords", canvas_prompt_coords)
+        
         # Ignoring if prompt clicked
         clicked_items = self.canvas.find_overlapping(x_canvas, y_canvas, x_canvas, y_canvas) # List of clicked items
         for prompt in self.pos_prompt_items + self.neg_prompt_items:
@@ -113,11 +114,10 @@ class ImageCanvas:
         if self.outside(x_canvas, y_canvas):
             return
         
-        ### Convert to image coords and store
+        # Convert canvas coords to full res image coords and store
         x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
-        self.pos_prompt_pts.append((x_image, y_image)) # Storing positive prompt coords
-        # print(f"Positive point prompt place at ({x_image}, {y_image})!") #sanitycheck
-        
+        self.pos_prompt_pts.append((x_image, y_image)) # Storing positive prompt coords relative to full image
+
         self.draw_point_prompts() # Drawing point prompt on canvas
     
     def place_neg_prompt(self, event) -> None:
@@ -137,8 +137,7 @@ class ImageCanvas:
         
         ### Convert to image coords and store
         x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
-        self.neg_prompt_pts.append((x_image, y_image)) # Storing positive prompt coords
-        # print(f"Negative point prompt place at ({x_image}, {y_image})!") #sanitycheck
+        self.neg_prompt_pts.append((x_image, y_image)) # Storing negative prompt coords
         
         self.draw_point_prompts() # Drawing point prompt on canvas
     
@@ -154,13 +153,9 @@ class ImageCanvas:
 
         # Redrawing positive prompts
         for x_image, y_image in self.pos_prompt_pts:
-            # Accounting for image pyramid
-            x_image /= self.reduction**max(0, self.curr_img)
-            y_image /= self.reduction**max(0, self.curr_img)
-            
             # Converting to canvas coords
             x_canvas, y_canvas = self.image_to_canvas_coords(x_image, y_image)
-            
+
             # Redrawing and storing positive prompt
             prompt_color = "green"
             prompt_item = self.draw_point(x_canvas, y_canvas, prompt_color)
@@ -168,13 +163,9 @@ class ImageCanvas:
 
             # Making prompt clickable
             self.canvas.tag_bind(prompt_item, "<Button-1>", self.prompt_click_test)
-
+        
         # Redrawing negative prompts
         for x_image, y_image in self.neg_prompt_pts:
-            # Accounting for image pyramid
-            x_image /= self.reduction**max(0, self.curr_img)
-            y_image /= self.reduction**max(0, self.curr_img)
-            
             # Converting to canvas coords
             x_canvas, y_canvas = self.image_to_canvas_coords(x_image, y_image)
             
@@ -186,13 +177,13 @@ class ImageCanvas:
     def prompt_click_test(self, event):
         print("Positive prompt clicked")
 
-    def draw_point(self, x, y, color):
+    def draw_point(self, x_c, y_c, color):
         r = max(3, 5 * self.scale) # Radius of point
-        point_item = self.canvas.create_oval(x - r, y - r, x + r, y + r, fill=color, outline="black")
+        point_item = self.canvas.create_oval(x_c - r, y_c - r, x_c + r, y_c + r, fill=color, outline="black")
         return point_item
     
     def canvas_to_image_coords(self, x_canvas, y_canvas):
-        """Converts canvas coordinates to image coordinates.
+        """Converts canvas coordinates to image coordinates for full resolution image.
         
         Args:
             x_canvas: canvas x-coordinate
@@ -200,15 +191,26 @@ class ImageCanvas:
         Returns:
             Tuple containing converted image coordinates.   
             """
+        # Getting image coords for current image
         x_image = (x_canvas - self.canvas.coords(self.container)[0]) / self.scale
         y_image = (y_canvas - self.canvas.coords(self.container)[1]) / self.scale
 
+        # Accounting for image pyramid
+        x_image *= (self.reduction**max(0, self.curr_img))
+        y_image *= (self.reduction**max(0, self.curr_img))
+        
         return (x_image, y_image)
     
     def image_to_canvas_coords(self, x_image, y_image):
-        """Converts image coordinates to canvas coordinates."""
+        """Converts full resolution image coordinates to canvas coordinates."""
+        # Accounting for image pyramid
+        x_image /= self.reduction**max(0, self.curr_img)
+        y_image /= self.reduction**max(0, self.curr_img)
+
+        # Converting to canvas coords
         x_canvas = self.canvas.coords(self.container)[0] + (x_image * self.scale)
         y_canvas = self.canvas.coords(self.container)[1] + (y_image * self.scale)
+
         return x_canvas, y_canvas
 
     def __display_image_coords(self, event) -> None:
@@ -257,6 +259,7 @@ class ImageCanvas:
             h /= self.reduction  # divide on reduction degree
             self.pyramid.append(self.pyramid[-1].resize((int(w), int(h)), self.filter))
 
+    ### Displaying image
     def show_image(self):
         """Show image on the Canvas. Implements correct image zoom almost like in Google Maps."""
         box_image = self.canvas.coords(self.container)  # get image area
@@ -309,7 +312,8 @@ class ImageCanvas:
         self.imframe.grid(sticky='nswe')  # Make frame container sticky
         self.imframe.rowconfigure(0, weight=1)  # Make canvas expandable
         self.imframe.columnconfigure(0, weight=1)
-   
+    
+    ### Scrolling
     def scroll_x(self, *args, **kwargs):
         """Scroll canvas horizontally and redraw the image."""
         self.canvas.xview(*args)  # scroll horizontally
@@ -320,6 +324,24 @@ class ImageCanvas:
         self.canvas.yview(*args)  # scroll vertically
         self.show_image()  # redraw the image
 
+    def keystroke(self, event):
+        """Scrolling with the keyboard.
+            Independent from the language of the keyboard, CapsLock, <Ctrl>+<key>, etc."""
+        if event.state - self.previous_state == 4:  # means that the Control key is pressed
+            pass  # do nothing if Control key is pressed
+        else:
+            self.previous_state = event.state  # remember the last keystroke state
+            # Up, Down, Left, Right keystrokes
+            if event.keycode in [68, 39, 102]:  # scroll right: keys 'D', 'Right' or 'Numpad-6'
+                self.scroll_x('scroll',  1, 'unit', event=event)
+            elif event.keycode in [65, 37, 100]:  # scroll left: keys 'A', 'Left' or 'Numpad-4'
+                self.scroll_x('scroll', -1, 'unit', event=event)
+            elif event.keycode in [87, 38, 104]:  # scroll up: keys 'W', 'Up' or 'Numpad-8'
+                self.scroll_y('scroll', -1, 'unit', event=event)
+            elif event.keycode in [83, 40, 98]:  # scroll down: keys 'S', 'Down' or 'Numpad-2'
+                self.scroll_y('scroll',  1, 'unit', event=event)
+
+    ### Panning
     def move_from(self, event):
         """Remember previous coordinates for scrolling with the mouse """
         self.canvas.scan_mark(event.x, event.y)
@@ -329,14 +351,7 @@ class ImageCanvas:
         self.canvas.scan_dragto(event.x, event.y, gain=1)
         self.show_image()  # zoom tile and show it on the canvas
 
-    def outside(self, x, y):
-        """Checks if the point (x,y) is outside the image area."""
-        bbox = self.canvas.coords(self.container)  # get image area
-        if bbox[0] < x < bbox[2] and bbox[1] < y < bbox[3]:
-            return False  # point (x,y) is inside the image area
-        else:
-            return True  # point (x,y) is outside the image area
-
+    ### Zooming
     def wheel(self, event):
         """Zoom with mouse wheel."""
         x = self.canvas.canvasx(event.x)  # get coordinates of the event on the canvas
@@ -361,6 +376,8 @@ class ImageCanvas:
         self.curr_img = min((-1) * int(math.log(k, self.reduction)), len(self.pyramid) - 1)
         self.scale = k * math.pow(self.reduction, max(0, self.curr_img))
 
+        print(self.curr_img)
+
         self.canvas.scale('all', x, y, scale, scale)  # rescale all objects
 
         # Redraw some figures before showing image on the screen
@@ -368,27 +385,19 @@ class ImageCanvas:
         self.show_image() # Displaying image
         self.draw_point_prompts() # Redrawing point prompts
 
-    def keystroke(self, event):
-        """Scrolling with the keyboard.
-            Independent from the language of the keyboard, CapsLock, <Ctrl>+<key>, etc."""
-        if event.state - self.previous_state == 4:  # means that the Control key is pressed
-            pass  # do nothing if Control key is pressed
-        else:
-            self.previous_state = event.state  # remember the last keystroke state
-            # Up, Down, Left, Right keystrokes
-            if event.keycode in [68, 39, 102]:  # scroll right: keys 'D', 'Right' or 'Numpad-6'
-                self.scroll_x('scroll',  1, 'unit', event=event)
-            elif event.keycode in [65, 37, 100]:  # scroll left: keys 'A', 'Left' or 'Numpad-4'
-                self.scroll_x('scroll', -1, 'unit', event=event)
-            elif event.keycode in [87, 38, 104]:  # scroll up: keys 'W', 'Up' or 'Numpad-8'
-                self.scroll_y('scroll', -1, 'unit', event=event)
-            elif event.keycode in [83, 40, 98]:  # scroll down: keys 'S', 'Down' or 'Numpad-2'
-                self.scroll_y('scroll',  1, 'unit', event=event)
-
     def crop(self, bbox):
         """Crop rectangle from the image and return it."""
         return self.pyramid[0].crop(bbox)
 
+    ### Helper functions
+    def outside(self, x, y):
+        """Checks if the point (x,y) is outside the image area."""
+        bbox = self.canvas.coords(self.container)  # get image area
+        if bbox[0] < x < bbox[2] and bbox[1] < y < bbox[3]:
+            return False  # point (x,y) is inside the image area
+        else:
+            return True  # point (x,y) is outside the image area
+    
     def destroy(self):
         """ImageFrame destructor."""
         self.image.close()
