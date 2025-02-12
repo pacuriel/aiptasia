@@ -1,9 +1,10 @@
 
 # import tkinter as tk
+import uuid
 
 class Prompt:
     """Class representing user point prompts on image."""
-    def __init__(self, image_file: str, x: int, y: int, is_pos) -> None:
+    def __init__(self, image_file, image_coords, is_pos) -> None:
         """Initializes prompt object.
         
         Args: 
@@ -13,7 +14,9 @@ class Prompt:
         """
         self.image_file = image_file # File path to image
         self.is_pos = is_pos # Boolean representing 
-        self.coords = (x, y) # Coordinates of prompt on image
+        self.image_coords = image_coords # Coordinates of prompt on image
+
+        self.prompt_id = uuid.uuid4() # Generating prompt id
 
         self.store_prompt()
 
