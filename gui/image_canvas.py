@@ -104,6 +104,11 @@ class ImageCanvas:
         x_canvas = self.canvas.canvasx(event.x)
         y_canvas = self.canvas.canvasy(event.y)
 
+        # Ignoring if prompt clicked
+        clicked_items = self.canvas.find_overlapping(x_canvas, y_canvas, x_canvas, y_canvas) # List of clicked items
+        for prompt in self.pos_prompt_items + self.neg_prompt_items:
+            if prompt in clicked_items: return # Ignoring
+
         # Do nothing if outside of image region
         if self.outside(x_canvas, y_canvas):
             return
@@ -120,6 +125,11 @@ class ImageCanvas:
         # Convert event coords to canvas coords
         x_canvas = self.canvas.canvasx(event.x)
         y_canvas = self.canvas.canvasy(event.y)
+
+        # Ignoring if prompt clicked
+        clicked_items = self.canvas.find_overlapping(x_canvas, y_canvas, x_canvas, y_canvas) # List of clicked items
+        for prompt in self.pos_prompt_items + self.neg_prompt_items:
+            if prompt in clicked_items: return # Ignoring
 
         # Do nothing if outside of image region
         if self.outside(x_canvas, y_canvas):
@@ -157,7 +167,7 @@ class ImageCanvas:
             self.pos_prompt_items.append(prompt_item)
 
             # Making prompt clickable
-            # self.canvas.tag_bind(prompt_item, "<Button-1>", self.prompt_click_test)
+            self.canvas.tag_bind(prompt_item, "<Button-1>", self.prompt_click_test)
 
         # Redrawing negative prompts
         for x_image, y_image in self.neg_prompt_pts:
@@ -174,9 +184,6 @@ class ImageCanvas:
             self.neg_prompt_items.append(prompt_item)
 
     def prompt_click_test(self, event):
-        # self.canvas.delete(self.pos_prompt_items[-1]) # Avoiding adding an extra prompt
-        # self.pos_prompt_items.pop()
-        # self.pos_prompt_pts.pop()
         print("Positive prompt clicked")
 
     def draw_point(self, x, y, color):
