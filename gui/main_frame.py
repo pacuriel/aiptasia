@@ -34,7 +34,7 @@ class MainFrame(ttk.Frame):
 
     def __setup_main_window(self):
         # Setting application/window title
-        self.__application_title = "Aiptasia image viewer app"
+        self.__application_title = "Aiptasia image viewer app v" + str(self.master.version_number) 
         self.master.title(self.__application_title) 
 
     def __create_widgets(self):

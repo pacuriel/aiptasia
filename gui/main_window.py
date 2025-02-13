@@ -17,7 +17,7 @@ class MainWindow(tk.Tk):
     def __configure_main_window(self) -> None:
         """Configures the main window components."""
         self.state("zoomed") # Maximizing main window once opened 
-
+        self.version_number = 0.1 # Version number of application
         # Configuring grid inside main window
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
