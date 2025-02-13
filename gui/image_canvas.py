@@ -87,7 +87,7 @@ class ImageCanvas:
         self.canvas.bind('<MouseWheel>', self.wheel)  # Zoom for Windows and MacOS, but not Linux
         # self.canvas.bind('<Button-5>',   self.wheel)  # Zoom for Linux, wheel scroll down
         # self.canvas.bind('<Button-4>',   self.wheel)  # zoom for Linux, wheel scroll up
-        # self.canvas.bind('<Motion>', self.__display_image_coords) ### Commented out for testing
+        self.canvas.bind('<Motion>', self.__display_image_coords) ### Commented out for testing
 
         # Handle keystrokes in idle mode, because program slows down on a weak computers,
         # when too many key stroke events in the same time
@@ -189,7 +189,7 @@ class ImageCanvas:
             x_canvas: canvas x-coordinate
             y_canvas: canvas y-coordinate
         Returns:
-            Tuple containing converted image coordinates.   
+            Tuple containing full resolution image coordinates image coordinates.   
             """
         # Getting image coords for current image
         x_image = (x_canvas - self.canvas.coords(self.container)[0]) / self.scale
@@ -213,32 +213,6 @@ class ImageCanvas:
 
         return x_canvas, y_canvas
 
-    def __display_image_coords(self, event) -> None:
-        """Displays coordinates of cursor relevant to image at top of main window.
-        
-        Args: 
-            event: Tkinter user-triggered event
-        """
-        # Convert event to canvas coordinates
-        x_canvas = self.canvas.canvasx(event.x)
-        y_canvas = self.canvas.canvasy(event.y)
-
-        # Checks if cursor is outside image area
-        if self.outside(x_canvas, y_canvas):
-            self.main_window.title(self.application_title)
-            return
-        
-        # Obtain current image coordinates
-        x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas)
-
-        # Account for image pyramid
-        if self.curr_img != 0: 
-            x_image = int(x_image * (self.reduction**self.curr_img))
-            y_image = int(y_image * (self.reduction**self.curr_img))
-
-        # Update window title
-        self.main_window.title(self.application_title + f" - Coordinates: ({int(x_image)}, {int(y_image)})")
-
     def __create_image_pyramid(self) -> list:
         """Creates image pyramid and stores in class variable."""
         # Create image pyramid
@@ -259,7 +233,7 @@ class ImageCanvas:
             h /= self.reduction  # divide on reduction degree
             self.pyramid.append(self.pyramid[-1].resize((int(w), int(h)), self.filter))
 
-    ### Displaying image
+    ### Displaying image and image info
     def show_image(self):
         """Show image on the Canvas. Implements correct image zoom almost like in Google Maps."""
         box_image = self.canvas.coords(self.container)  # get image area
@@ -313,6 +287,27 @@ class ImageCanvas:
         self.imframe.rowconfigure(0, weight=1)  # Make canvas expandable
         self.imframe.columnconfigure(0, weight=1)
     
+    def __display_image_coords(self, event) -> None:
+        """Displays coordinates of cursor relevant to image at top of main window.
+        
+        Args: 
+            event: Tkinter user-triggered event
+        """
+        # Convert event to canvas coordinates
+        x_canvas = self.canvas.canvasx(event.x)
+        y_canvas = self.canvas.canvasy(event.y)
+
+        # Checks if cursor is outside image area
+        if self.outside(x_canvas, y_canvas):
+            self.main_window.title(self.application_title)
+            return
+        
+        # Obtain current image coordinates
+        x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas)
+
+        # Update window title
+        self.main_window.title(self.application_title + f" - Coordinates: ({int(x_image)}, {int(y_image)})")
+
     ### Scrolling
     def scroll_x(self, *args, **kwargs):
         """Scroll canvas horizontally and redraw the image."""
@@ -375,8 +370,6 @@ class ImageCanvas:
         k = self.imscale * self.ratio  # temporary coefficient
         self.curr_img = min((-1) * int(math.log(k, self.reduction)), len(self.pyramid) - 1)
         self.scale = k * math.pow(self.reduction, max(0, self.curr_img))
-
-        print(self.curr_img)
 
         self.canvas.scale('all', x, y, scale, scale)  # rescale all objects
 
