@@ -41,7 +41,8 @@ class MainFrame(ttk.Frame):
         """Creates main window and frame widgets."""
         # Dictionary with links to helper functions for MenuBar
         self.menu_funcs = { 
-            "open_image": self.__open_image
+            "open_image": self.__open_image,
+            "prompting_mode": self.__prompting_mode
         }
 
         # Creating menu bar widget
@@ -69,6 +70,10 @@ class MainFrame(ttk.Frame):
             return
 
         self.__set_image(image_path=image_path)
+
+    def __prompting_mode(self) -> None:
+        """Starts GUI's prompting mode."""
+        pass
 
     def __set_image(self, image_path) -> None:
         """Sets a newly selected image and closes previously opened image.

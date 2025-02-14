@@ -3,6 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import warnings
 import math
+import uuid
 
 from auto_scrollbar import AutoScrollbar
 from prompt import Prompt 
@@ -55,6 +56,8 @@ class ImageCanvas:
         self.pos_prompt_items = []
         self.neg_prompt_pts = []
         self.neg_prompt_items = []
+
+        self.prompts = []
         
     def __create_canvas_widgets(self, master) -> None:
         self.main_frame = master
@@ -93,10 +96,27 @@ class ImageCanvas:
         # when too many key stroke events in the same time
         self.canvas.bind('<Key>', lambda event: self.canvas.after_idle(self.keystroke, event))
 
-        self.canvas.bind('<Button-1>', self.place_pos_prompt)
-        self.canvas.bind('<Button-3>', self.place_neg_prompt)
+        self.canvas.bind('<Button-1>', self.place_new_prompt)
+        self.canvas.bind('<Button-3>', self.place_new_prompt)
     
     ### Prompting
+    def place_new_prompt(self, event):
+        is_pos = True if event.num == 1 else False
+        
+        # if is_pos: 
+        #     aip_id = uuid.uuid4()
+        #     self.aip_id = uuid.uuid4()
+        # else:
+        #     aip_id
+
+        # Creating new prompt object and displaying
+        new_prompt = Prompt(image_file=self.image_file,
+                            event=event,
+                            canvas=self.canvas,
+                            is_pos=is_pos)
+        
+        self.prompts.append(new_prompt)
+
     def place_pos_prompt(self, event) -> None:
         """Place a positive point prompt on the image at cursor location."""
         # Convert event coords to canvas coords
