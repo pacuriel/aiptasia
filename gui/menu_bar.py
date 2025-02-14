@@ -37,7 +37,7 @@ class MenuBar(tk.Menu):
         # Mode button
         self.mode = tk.Menu(master=self, tearoff=tk.OFF)
         self.add_cascade(label="Mode", menu=self.mode, underline=0)
-        self.mode.add_cascade(label="Prompting", underline=0, command=self.helper_funcs["prompting_mode"])
+        self.mode.add_cascade(label="Set Mode", underline=0, command=self.helper_funcs["set_mode"])
 
 
     # Exits application

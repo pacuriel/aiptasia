@@ -17,7 +17,7 @@ class MainWindow(tk.Tk):
     def __configure_main_window(self) -> None:
         """Configures the main window components."""
         self.state("zoomed") # Maximizing main window once opened 
-        self.version_number = 0.1 # Version number of application
+        self.__version_number = 0.1 # Version number of application
 
         # Configuring grid inside main window
         self.rowconfigure(0, weight=1)
@@ -33,3 +33,6 @@ class MainWindow(tk.Tk):
         # Configuring MainFrame grid (Should we do this in MainFrame class???)
         self.main_frame.rowconfigure(0, weight=1)
         self.main_frame.columnconfigure(0, weight=1)
+    
+    def get_version_number(self):
+        return self.__version_number
