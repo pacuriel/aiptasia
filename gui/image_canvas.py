@@ -30,7 +30,6 @@ class ImageCanvas:
         # self.show_image()  # show image on the canvas
         # self.canvas.focus_set()  # set focus on the canvas
 
-    # Rename below function?
     def __get_canvas_variables(self, image_file) -> None:
         """Stores class variables relevant to image canvas.
         
@@ -49,12 +48,11 @@ class ImageCanvas:
         self.min_side = min(self.imwidth, self.imheight)  # get the smaller image side
 
         # Used to store point prompts
-        self.pos_prompt_pts = []
-        self.pos_prompt_items = []
-        self.neg_prompt_pts = []
-        self.neg_prompt_items = []
+        # self.pos_prompt_pts = []
+        # self.pos_prompt_items = []
+        # self.neg_prompt_pts = []
+        # self.neg_prompt_items = []
 
-        self.prompts = []
         
     def __create_canvas_widgets(self, master) -> None:
         self.main_frame = master
@@ -96,6 +94,26 @@ class ImageCanvas:
         # self.canvas.bind('<Button-1>', self.place_new_prompt)
         # self.canvas.bind('<Button-3>', self.place_new_prompt)
     
+    def __create_image_pyramid(self) -> None:
+        """Creates image pyramid and stores in class variable."""
+        # Create image pyramid
+        self.pyramid = [Image.open(self.image_file)]
+
+        # Set ratio coefficient for image pyramid
+        self.ratio = 1.0 #if not self.huge else max(self.imwidth, self.imheight) / self.huge_size
+        self.curr_img = 0  # current image from the pyramid
+        self.scale = self.imscale * self.ratio  # image pyramide scale
+        self.reduction = 2  # reduction degree of image pyramid
+        w, h = self.pyramid[-1].size
+
+        min_size = 512
+
+        # top pyramid image is around 512 pixels in size
+        while w > min_size and h > min_size:  
+            w /= self.reduction  # divide on reduction degree
+            h /= self.reduction  # divide on reduction degree
+            self.pyramid.append(self.pyramid[-1].resize((int(w), int(h)), self.filter))
+
     ### Prompting
     def place_new_prompt(self, event):
         is_pos = True if event.num == 1 else False
@@ -229,26 +247,6 @@ class ImageCanvas:
         y_canvas = self.canvas.coords(self.container)[1] + (y_image * self.scale)
 
         return x_canvas, y_canvas
-
-    def __create_image_pyramid(self) -> None:
-        """Creates image pyramid and stores in class variable."""
-        # Create image pyramid
-        self.pyramid = [Image.open(self.image_file)]
-
-        # Set ratio coefficient for image pyramid
-        self.ratio = 1.0 #if not self.huge else max(self.imwidth, self.imheight) / self.huge_size
-        self.curr_img = 0  # current image from the pyramid
-        self.scale = self.imscale * self.ratio  # image pyramide scale
-        self.reduction = 2  # reduction degree of image pyramid
-        w, h = self.pyramid[-1].size
-
-        min_size = 512
-
-        # top pyramid image is around 512 pixels in size
-        while w > min_size and h > min_size:  
-            w /= self.reduction  # divide on reduction degree
-            h /= self.reduction  # divide on reduction degree
-            self.pyramid.append(self.pyramid[-1].resize((int(w), int(h)), self.filter))
 
     ### Displaying image and image info
     def show_image(self):
