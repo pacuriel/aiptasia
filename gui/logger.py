@@ -35,11 +35,11 @@ class Logger:
         if not os.path.isdir(self.log_dir):
             os.makedirs(self.log_dir)
 
-    def __handle_uncaught_exception(self, exc_type, exc_value, exc_traceback):
+    def __handle_uncaught_exception(self, exc_type, exc_value, exc_traceback) -> None:
         """Handles uncaught exceptions and displays in logger."""
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
-            return
+            return None
 
         logger = logging.getLogger(name=None)
         logger.error('Uncaught exception occured', exc_info=(exc_type, exc_value, exc_traceback))

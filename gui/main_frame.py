@@ -6,6 +6,7 @@ from tkinter.filedialog import askopenfilename
 from tkinter import messagebox
 import os
 import sys
+import logging
 
 # Helper classes and functions
 from menu_bar import MenuBar
@@ -75,19 +76,19 @@ class MainFrame(ttk.Frame):
         self.__application_title += f" - Mode={self.mode}"
         self.master.title(self.__application_title)
 
-    def __set_prompting_mode(self, mode_window):
+    def __set_prompting_mode(self, mode_window: tk.Toplevel) -> None:
         self.mode = "prompting"
         mode_window.destroy()
 
-    def __set_editing_mode(self, mode_window):
+    def __set_editing_mode(self, mode_window: tk.Toplevel) -> None:
         self.mode = "editing"
-        print(f"{self.mode[0].upper() + self.mode[1:]} Mode under construction as of version {self.master.get_version_number()}. Goodbye.")
+        logging.error(f"{self.mode[0].upper() + self.mode[1:]} Mode under construction as of version {self.master.get_version_number()}. Goodbye.")
         mode_window.destroy()
         sys.exit(1)
 
-    def __set_prediction_mode(self, mode_window):
+    def __set_prediction_mode(self, mode_window: tk.Toplevel) -> None:
         self.mode = "prediction"
-        print(f"{self.mode[0].upper() + self.mode[1:]} Mode under construction as of version {self.master.get_version_number()}. Goodbye.")
+        logging.error(f"{self.mode[0].upper() + self.mode[1:]} Mode under construction as of version {self.master.get_version_number()}. Goodbye.")
         mode_window.destroy()
         sys.exit(1)
 
@@ -95,6 +96,12 @@ class MainFrame(ttk.Frame):
         """Running selected application mode."""
         if self.mode == "prompting":
             self.__prompting_mode() # Running prompting mode
+        elif self.mode == "editing":
+            pass
+        elif self.mode == "prediction":
+            pass
+        elif self.mode is None:
+            pass
 
     def __open_image(self) -> None:
         """Opens new image once selected from file menu."""
