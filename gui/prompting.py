@@ -8,7 +8,20 @@ class Prompting(ImageCanvas):
         """Initialize the prompting mode."""
         # breakpoint()
         super().__init__(master, image_file) # Initializing base class
+
+        # Stacks for undo/redo functionality
+        self.undo_stack = []
+        self.redo_stack = []
+
+        # Setting prompting related variables
+        self.pos_prompt_pts = []
+        self.pos_prompt_items = []
+        self.neg_prompt_pts = []
+        self.neg_prompt_items = []
+        self.prompts = []
+        
         self.__bind_events() # Binding events relevant to prompting
+        
         # self.__create_canvas_widgets()
 
     def __bind_events(self):
@@ -18,21 +31,37 @@ class Prompting(ImageCanvas):
 
     ### Prompting
     def place_new_prompt(self, event):
-        is_pos = True if event.num == 1 else False
+        is_pos = True if event.num == 1 else False # Storing prompt type
         
-        # if is_pos: 
-        #     aip_id = uuid.uuid4()
-        #     self.aip_id = uuid.uuid4()
-        # else:
-        #     aip_id
+        # Convert event coords to canvas coords
+        x_canvas = self.canvas.canvasx(event.x)
+        y_canvas = self.canvas.canvasy(event.y)
+
+        image_coords = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
 
         # Creating new prompt object and displaying
         new_prompt = Prompt(image_file=self.image_file,
-                            event=event,
-                            canvas=self.canvas,
+                            prompt_coords=image_coords,
                             is_pos=is_pos)
-        
+
         self.prompts.append(new_prompt)
+
+        # Drawing prompt on image
+        if is_pos:
+            self.place_pos_prompt(event)
+        else:
+            self.place_neg_prompt(event)
+
+        # Appending to undo stack and clearing redo stack
+        self.undo_stack.append(new_prompt)
+        self.redo_stack.clear()
+
+    def draw_new_prompt(self, event): 
+        pass
+
+    def redraw_prompts(self, event):
+        """Redraws point prompts on image canvas."""
+        pass
 
     def place_pos_prompt(self, event) -> None:
         """Place a positive point prompt on the image at cursor location."""
@@ -111,11 +140,12 @@ class Prompting(ImageCanvas):
             prompt_item = self.draw_point(x_canvas, y_canvas, prompt_color)
             self.neg_prompt_items.append(prompt_item)
 
-    def prompt_click_test(self, event):
-        print("Positive prompt clicked")
+    def draw_point_prompts_test(self) -> None:
+        """Draws (or redraws) point prompts on canvas."""
+        pass
 
     def draw_point(self, x_c, y_c, color):
-        r = max(3, 5 * self.scale) # Radius of point
+        r = max(4, 5 * self.scale) # Radius of point
         point_item = self.canvas.create_oval(x_c - r, y_c - r, x_c + r, y_c + r, fill=color, outline="black")
         return point_item
     
@@ -149,3 +179,6 @@ class Prompting(ImageCanvas):
         y_canvas = self.canvas.coords(self.container)[1] + (y_image * self.scale)
 
         return x_canvas, y_canvas
+    
+    def remove_prompt(self, prompt: Prompt):
+        pass
