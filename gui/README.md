@@ -2,7 +2,11 @@
 
 This directory contains files pertaining to a graphical user interface (GUI) for Pablo A. Curiel's aiptasia imaging work.
 
+## Misc. notes
+- Naming format for csv prompt files (w/o braces): {image basename}_{date_time}.csv
+
 ## TODO
+- Add undo/redo capability (stack/queue-based)
 - Create modes for prompting, drawing/painting/editing predicted/GT masks, and predicting new masks
 - Embed (finetuned SAM in the backend)
 - Check if we need to load the PIL image in both the main app class and user action class (seems to be waste of memory)

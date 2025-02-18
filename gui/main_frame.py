@@ -48,7 +48,7 @@ class MainFrame(ttk.Frame):
         self.__menu_bar = MenuBar(master=self.master, helper_funcs=self.menu_funcs)
         self.master.configure(menu=self.__menu_bar)
 
-        ### Ask for prompting mode
+        # Ask user to set mode
         self.__set_mode()
 
     def __set_mode(self) -> None:
