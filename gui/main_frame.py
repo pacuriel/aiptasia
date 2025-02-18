@@ -9,12 +9,13 @@ import sys
 
 # Helper classes and functions
 from menu_bar import MenuBar
-from image_canvas import ImageCanvas
+from prompting import Prompting
+# from image_canvas import ImageCanvas
 from utils import is_image
 
 class MainFrame(ttk.Frame):
     """Class representing main frame inside main window."""
-    def __init__(self, master) -> None:
+    def __init__(self, master: tk.Tk) -> None:
         """Initialize the main application frame.
         
         Args:
@@ -23,15 +24,12 @@ class MainFrame(ttk.Frame):
         super().__init__(master=master)
 
         self.master = master # Parent widget (likely tk.Tk)
-        self.version_number = self.master.get_version_number()
+        self.version_number = self.master.get_version_number() # Storing version number
         self.__img_frame = None # Frame to show image in
         
         self.__setup_main_window() # Setting up main window
         self.__create_widgets() # Creating application widgets
-
-        ### Below is for testing purposes
-        img_path = "C:\\Users\\tcuri\\Documents\\_UC Merced Documents\\research\\insite\\code\\gui\\CC7.265.1.2023.10.13.png"
-        self.__set_image(img_path)
+        self.__run_mode() # Running mode selected at startup
 
     def __setup_main_window(self):
         # Setting application/window title
@@ -77,13 +75,6 @@ class MainFrame(ttk.Frame):
         self.__application_title += f" - Mode={self.mode}"
         self.master.title(self.__application_title)
 
-        # if type(self.mode) != str:
-        #     self.__set_mode()
-
-        # mode_window.destroy()
-
-    
-    
     def __set_prompting_mode(self, mode_window):
         self.mode = "prompting"
         mode_window.destroy()
@@ -100,7 +91,10 @@ class MainFrame(ttk.Frame):
         mode_window.destroy()
         sys.exit(1)
 
-
+    def __run_mode(self):
+        """Running selected application mode."""
+        if self.mode == "prompting":
+            self.__prompting_mode() # Running prompting mode
 
     def __open_image(self) -> None:
         """Opens new image once selected from file menu."""
@@ -126,7 +120,16 @@ class MainFrame(ttk.Frame):
 
     def __prompting_mode(self) -> None:
         """Starts GUI's prompting mode."""
-        pass
+        ### Below is for testing purposes
+        image_path = "C:\\Users\\tcuri\\Documents\\_UC Merced Documents\\research\\insite\\code\\gui\\CC7.265.1.2023.10.13.png"
+        # self.__set_image(img_path)
+
+        # Update window title
+        self.master.title(self.__application_title + f" - Current file: {image_path}")
+
+        self.__img_frame = Prompting(master=self, image_file=image_path)
+        self.__img_frame.grid()
+        # breakpoint()
 
     def __set_image(self, image_path) -> None:
         """Sets a newly selected image and closes previously opened image.
@@ -140,8 +143,8 @@ class MainFrame(ttk.Frame):
         self.master.title(self.__application_title + f" - Current file: {image_path}")
 
         # Creating and displaying image frame object
-        self.__img_frame = ImageCanvas(master=self, image_file=image_path)
-        self.__img_frame.grid() ### Sanity check
+        # self.__img_frame = ImageCanvas(master=self, image_file=image_path)
+        # self.__img_frame.grid() ### Sanity check
     
     def __close_image(self) -> None:
         """Closes previously opened image."""

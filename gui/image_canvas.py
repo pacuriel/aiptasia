@@ -20,18 +20,15 @@ class ImageCanvas:
         """Initialize the ImageFrame."""
 
         self.__get_canvas_variables(image_file) # Storing variables relevant to canvas
-
         self.__create_canvas_widgets(master=master) # Creating canvas widget inside frame widget
-
         self.__bind_events() # Binding events to canvas widget
-       
         self.__create_image_pyramid() # Creating image pyramid
         
         # Put image into container rectangle and use it to set proper coordinates to the image
         self.container = self.canvas.create_rectangle((0, 0, self.imwidth, self.imheight), width=0)
         
-        self.show_image()  # show image on the canvas
-        self.canvas.focus_set()  # set focus on the canvas
+        # self.show_image()  # show image on the canvas
+        # self.canvas.focus_set()  # set focus on the canvas
 
     # Rename below function?
     def __get_canvas_variables(self, image_file) -> None:
@@ -96,8 +93,8 @@ class ImageCanvas:
         # when too many key stroke events in the same time
         self.canvas.bind('<Key>', lambda event: self.canvas.after_idle(self.keystroke, event))
 
-        self.canvas.bind('<Button-1>', self.place_new_prompt)
-        self.canvas.bind('<Button-3>', self.place_new_prompt)
+        # self.canvas.bind('<Button-1>', self.place_new_prompt)
+        # self.canvas.bind('<Button-3>', self.place_new_prompt)
     
     ### Prompting
     def place_new_prompt(self, event):
@@ -233,7 +230,7 @@ class ImageCanvas:
 
         return x_canvas, y_canvas
 
-    def __create_image_pyramid(self) -> list:
+    def __create_image_pyramid(self) -> None:
         """Creates image pyramid and stores in class variable."""
         # Create image pyramid
         self.pyramid = [Image.open(self.image_file)]
