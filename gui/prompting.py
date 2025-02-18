@@ -1,17 +1,14 @@
+import logger
+
 from image_canvas import ImageCanvas
 from prompt import Prompt
 
 class Prompting(ImageCanvas):
     """Class for prompting mode. Inherits from ImageCanvas."""
-    
     def __init__(self, master, image_file):
         """Initialize the prompting mode."""
         # breakpoint()
         super().__init__(master, image_file) # Initializing base class
-
-        # Stacks for undo/redo functionality
-        self.undo_stack = []
-        self.redo_stack = []
 
         # Setting prompting related variables
         self.pos_prompt_pts = []
@@ -26,8 +23,12 @@ class Prompting(ImageCanvas):
 
     def __bind_events(self):
         """Binding prompting events to keys."""
+        # Placing prompts
         self.canvas.bind('<Button-1>', self.place_new_prompt)
         self.canvas.bind('<Button-3>', self.place_new_prompt)
+
+        # Undoing/redoing
+        self.canvas.bind('<Control-z>', self.undo)
 
     ### Prompting
     def place_new_prompt(self, event):
@@ -181,4 +182,24 @@ class Prompting(ImageCanvas):
         return x_canvas, y_canvas
     
     def remove_prompt(self, prompt: Prompt):
+        pass
+    
+    ### Undo and redo functionality
+    def undo(self, event):
+        """Performs Undo operation."""
+        if not self.undo_stack: # If stack is empty
+            return
+        
+        last_event = self.undo_stack.pop() # Getting last event
+
+        ### Remove prompt here
+        canvas_oval_id = last_event.get_canvas_oval_id() # Getting oval ID
+        self.canvas.delete(canvas_oval_id) # Deleting prompt from canvas
+
+        
+
+        self.redo_stack.append(last_event) # Appending to redo stack
+
+    def redo(self, event):
+        """Performs Redo operation."""
         pass

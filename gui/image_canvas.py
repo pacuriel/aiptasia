@@ -47,12 +47,9 @@ class ImageCanvas:
         self.imwidth, self.imheight = self.image.size  # public for outer classes
         self.min_side = min(self.imwidth, self.imheight)  # get the smaller image side
 
-        # Used to store point prompts
-        # self.pos_prompt_pts = []
-        # self.pos_prompt_items = []
-        # self.neg_prompt_pts = []
-        # self.neg_prompt_items = []
-
+        # Stacks for undo/redo functionality
+        self.undo_stack = []
+        self.redo_stack = []
         
     def __create_canvas_widgets(self, master) -> None:
         self.main_frame = master
