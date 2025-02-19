@@ -1,1 +1,1 @@
-file_name, point_x, point_y, is_pos
+file_name, prompt_id, point_x, point_y, is_pos, canvas_oval_id, aip_id 

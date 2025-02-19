@@ -20,16 +20,21 @@ class Prompt:
             x: x-coordinate of prompt on image
             y: y-coordinate of prompt on image
         """
-        self.image_file = image_file # File path to image
+        self.__image_file = image_file # File path to image
         self.__prompt_coords = prompt_coords # Coordinates of prompt on image
         self.__is_pos = is_pos # Boolean representing whether prompt is positive
         self.__canvas_oval_id = canvas_oval_id # ID associated to oval on image canvas
         self.__aip_id = aip_id
         self.__prompt_id = uuid.uuid4() # Generating unique prompt id (aka primary key)
 
+        ### Should we store date/time that prompt was birthed???
+
     ### Setter and getter functions
     def get_prompt_id(self):
         return self.__prompt_id
+    
+    def get_image_file(self):
+        return self.__image_file
     
     def get_is_pos(self):
         return self.__is_pos
@@ -48,7 +53,7 @@ class Prompt:
         """Sets (or updates) aiptasia ID."""
         self.__aip_id = aip_id
 
-    def get_aid_id(self) -> int:
+    def get_aip_id(self) -> int:
         return self.__aip_id
     
     ### Utility/helper functions

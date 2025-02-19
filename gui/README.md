@@ -4,6 +4,7 @@ This directory contains files pertaining to a graphical user interface (GUI) for
 
 ## Misc. notes
 - Naming format for csv prompt files (w/o braces): {image basename}_{date_time}.csv
+- Prompting CSV header format: file_name, prompt_id, point_x, point_y, is_pos, canvas_oval_id, aip_id 
 
 ## TODO
 - Add undo/redo capability (stack/queue-based)

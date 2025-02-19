@@ -1,4 +1,4 @@
-import logger
+import pandas as pd
 
 from image_canvas import ImageCanvas
 from prompt import Prompt
@@ -14,8 +14,17 @@ class Prompting(ImageCanvas):
         self.aip_id = 0 # ID of current aiptasia being prompted (updates every positive prompt)
         ### Find a better way to set aiptasia ID ^
 
+        self.prompt_csv_path = ".\\temp_log\\prompting.csv" # Path to prompting csv file
+
+        self.__check_prompt_csv()
+
         self.__bind_events() # Binding events relevant to prompting
-        
+    
+    def __check_prompt_csv(self):
+        self.prompt_data = pd.read_csv(self.prompt_csv_path, header=0)
+        if self.prompt_data.empty: return
+        ### Load in previously prompted file here
+
     def __bind_events(self) -> None:
         """Binding prompting events to keys."""
         # Placing prompts
@@ -59,6 +68,8 @@ class Prompting(ImageCanvas):
                             canvas_oval_id=canvas_oval_id,
                             aip_id=self.aip_id)
         self.prompts.append(new_prompt)
+
+        self.append_prompt_to_csv(new_prompt) # Adding prompt to CSV
 
         # Appending to undo stack and clearing redo stack
         self.undo_stack.append(new_prompt)
@@ -125,8 +136,31 @@ class Prompting(ImageCanvas):
 
         return (x_canvas, y_canvas)
     
-    def remove_prompt(self, prompt: Prompt):
-        pass
+    def append_prompt_to_csv(self, prompt: Prompt) -> None:
+        """Adds prompt information to prompting CSV."""
+        # Storing prompt info
+        image_file = prompt.get_image_file()
+        prompt_id = prompt.get_prompt_id()
+        x_coord, y_coord = prompt.get_prompt_coords()
+        is_pos = prompt.get_is_pos()
+        aip_id = prompt.get_aip_id()
+        canvas_oval_id = prompt.get_canvas_oval_id()
+
+        # Adding new row with prompt info
+        self.prompt_data.loc[len(self.prompt_data)] = [image_file,
+                                                       prompt_id,
+                                                       x_coord,
+                                                       y_coord,
+                                                       is_pos,
+                                                       aip_id,
+                                                       canvas_oval_id]
+        
+        self.prompt_data.to_csv(self.prompt_csv_path, index=False) # Updating prompt csv
+
+    def remove_prompt_from_csv(self) -> None:
+        """Removes last prompt row from the prompting CSV."""
+        self.prompt_data.drop((len(self.prompt_data) - 1), inplace=True) # Dropping last row of prompt dataframe
+        self.prompt_data.to_csv(self.prompt_csv_path, index=False) # Updating prompt csv
     
     ### Undo and redo functionality
     def undo(self, event):
@@ -139,6 +173,7 @@ class Prompting(ImageCanvas):
         # Removing prompt
         canvas_oval_id = prev_prompt.get_canvas_oval_id() # Getting oval ID
         self.canvas.delete(canvas_oval_id) # Deleting prompt from canvas
+        self.remove_prompt_from_csv() # Updating prompting CSV
 
         self.redo_stack.append(prev_prompt) # Appending to redo stack
         self.prompts.pop() # Removing from prompts list
@@ -157,9 +192,11 @@ class Prompting(ImageCanvas):
         # Updating aiptasia ID and setting in Prompt object
         if prev_prompt.get_is_pos():
             self.aip_id += 1
-        prev_prompt.set_aip_id(self.aip_id)
+        # prev_prompt.set_aip_id(self.aip_id) ### Do we have to do this???
 
         self.prompts.append(prev_prompt) # Appending to prompts list
+
+        self.append_prompt_to_csv(prompt=prev_prompt) # Updating prompt CSV
 
         self.redraw_prompts() # Redrawing Prompts on canvas
         self.undo_stack.append(prev_prompt) # Appending to undo stack
@@ -169,3 +206,9 @@ class Prompting(ImageCanvas):
         """Calls namesake method in parent class and redraws prompts."""
         super().wheel(event=event) # Calling parent class wheel method
         self.redraw_prompts() # Redrawing prompts on canvas
+
+    def destroy(self):
+        """Prompting mode destructor."""
+        super().destroy() # Parent class destroy method
+
+        ### Update prompting csv here???

@@ -2,14 +2,14 @@
 import logging
 
 from main_window import MainWindow
-from logger import Logger
+from logger import init_logging
 
 def main(): 
     """Main function"""
-    # Initalizing logger
-    logger = Logger()
-    logging.info("Starting application") # Startup message
+    init_logging() # Initialize logger
+    logging.info("Starting application")
 
+    # Running application
     main_window = MainWindow() # Storing MainWindow object
     main_window.mainloop() # Running application
     logging.info("Exiting application") # Exit message
