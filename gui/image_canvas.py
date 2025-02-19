@@ -28,7 +28,7 @@ class ImageCanvas:
         self.container = self.canvas.create_rectangle((0, 0, self.imwidth, self.imheight), width=0)
         
         # self.show_image()  # show image on the canvas
-        # self.canvas.focus_set()  # set focus on the canvas
+        self.canvas.focus_set()  # set focus on the canvas
 
     def __get_canvas_variables(self, image_file) -> None:
         """Stores class variables relevant to image canvas.
@@ -46,6 +46,8 @@ class ImageCanvas:
         self.image = Image.open(self.image_file)  # open image, but down't load it
         self.imwidth, self.imheight = self.image.size  # public for outer classes
         self.min_side = min(self.imwidth, self.imheight)  # get the smaller image side
+
+        self.imageid = None
 
         # Stacks for undo/redo functionality
         self.undo_stack = []
@@ -111,140 +113,6 @@ class ImageCanvas:
             h /= self.reduction  # divide on reduction degree
             self.pyramid.append(self.pyramid[-1].resize((int(w), int(h)), self.filter))
 
-    ### Prompting
-    def place_new_prompt(self, event):
-        is_pos = True if event.num == 1 else False
-        
-        # if is_pos: 
-        #     aip_id = uuid.uuid4()
-        #     self.aip_id = uuid.uuid4()
-        # else:
-        #     aip_id
-
-        # Creating new prompt object and displaying
-        new_prompt = Prompt(image_file=self.image_file,
-                            event=event,
-                            canvas=self.canvas,
-                            is_pos=is_pos)
-        
-        self.prompts.append(new_prompt)
-
-    def place_pos_prompt(self, event) -> None:
-        """Place a positive point prompt on the image at cursor location."""
-        # Convert event coords to canvas coords
-        x_canvas = self.canvas.canvasx(event.x)
-        y_canvas = self.canvas.canvasy(event.y)
-        # canvas_prompt_coords = x_canvas, y_canvas
-        # print("Canvas coords", canvas_prompt_coords)
-        
-        # Ignoring if prompt clicked
-        clicked_items = self.canvas.find_overlapping(x_canvas, y_canvas, x_canvas, y_canvas) # List of clicked items
-        for prompt in self.pos_prompt_items + self.neg_prompt_items:
-            if prompt in clicked_items: return # Ignoring
-
-        # Do nothing if outside of image region
-        if self.outside(x_canvas, y_canvas):
-            return
-        
-        # Convert canvas coords to full res image coords and store
-        x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
-        self.pos_prompt_pts.append((x_image, y_image)) # Storing positive prompt coords relative to full image
-
-        self.draw_point_prompts() # Drawing point prompt on canvas
-    
-    def place_neg_prompt(self, event) -> None:
-        """Places a negative point prmpt"""
-        # Convert event coords to canvas coords
-        x_canvas = self.canvas.canvasx(event.x)
-        y_canvas = self.canvas.canvasy(event.y)
-
-        # Ignoring if prompt clicked
-        clicked_items = self.canvas.find_overlapping(x_canvas, y_canvas, x_canvas, y_canvas) # List of clicked items
-        for prompt in self.pos_prompt_items + self.neg_prompt_items:
-            if prompt in clicked_items: return # Ignoring
-
-        # Do nothing if outside of image region
-        if self.outside(x_canvas, y_canvas):
-            return
-        
-        ### Convert to image coords and store
-        x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
-        self.neg_prompt_pts.append((x_image, y_image)) # Storing negative prompt coords
-        
-        self.draw_point_prompts() # Drawing point prompt on canvas
-    
-    def draw_point_prompts(self) -> None:
-        """Draws a point prompt on the canvas."""
-        # Remove previous points on canvas
-        for prompt in self.pos_prompt_items + self.neg_prompt_items:
-            self.canvas.delete(prompt)
-
-        # Removing all items from prompt lists
-        self.pos_prompt_items.clear()
-        self.neg_prompt_items.clear()
-
-        # Redrawing positive prompts
-        for x_image, y_image in self.pos_prompt_pts:
-            # Converting to canvas coords
-            x_canvas, y_canvas = self.image_to_canvas_coords(x_image, y_image)
-
-            # Redrawing and storing positive prompt
-            prompt_color = "green"
-            prompt_item = self.draw_point(x_canvas, y_canvas, prompt_color)
-            self.pos_prompt_items.append(prompt_item)
-
-            # Making prompt clickable
-            self.canvas.tag_bind(prompt_item, "<Button-1>", self.prompt_click_test)
-        
-        # Redrawing negative prompts
-        for x_image, y_image in self.neg_prompt_pts:
-            # Converting to canvas coords
-            x_canvas, y_canvas = self.image_to_canvas_coords(x_image, y_image)
-            
-            # Redrawing and storing negative prompt
-            prompt_color = "red"
-            prompt_item = self.draw_point(x_canvas, y_canvas, prompt_color)
-            self.neg_prompt_items.append(prompt_item)
-
-    def prompt_click_test(self, event):
-        print("Positive prompt clicked")
-
-    def draw_point(self, x_c, y_c, color):
-        r = max(3, 5 * self.scale) # Radius of point
-        point_item = self.canvas.create_oval(x_c - r, y_c - r, x_c + r, y_c + r, fill=color, outline="black")
-        return point_item
-    
-    def canvas_to_image_coords(self, x_canvas, y_canvas):
-        """Converts canvas coordinates to image coordinates for full resolution image.
-        
-        Args:
-            x_canvas: canvas x-coordinate
-            y_canvas: canvas y-coordinate
-        Returns:
-            Tuple containing full resolution image coordinates image coordinates.   
-            """
-        # Getting image coords for current image
-        x_image = (x_canvas - self.canvas.coords(self.container)[0]) / self.scale
-        y_image = (y_canvas - self.canvas.coords(self.container)[1]) / self.scale
-
-        # Accounting for image pyramid
-        x_image *= (self.reduction**max(0, self.curr_img))
-        y_image *= (self.reduction**max(0, self.curr_img))
-        
-        return (x_image, y_image)
-    
-    def image_to_canvas_coords(self, x_image, y_image):
-        """Converts full resolution image coordinates to canvas coordinates."""
-        # Accounting for image pyramid
-        x_image /= self.reduction**max(0, self.curr_img)
-        y_image /= self.reduction**max(0, self.curr_img)
-
-        # Converting to canvas coords
-        x_canvas = self.canvas.coords(self.container)[0] + (x_image * self.scale)
-        y_canvas = self.canvas.coords(self.container)[1] + (y_image * self.scale)
-
-        return x_canvas, y_canvas
-
     ### Displaying image and image info
     def show_image(self):
         """Show image on the Canvas. Implements correct image zoom almost like in Google Maps."""
@@ -282,10 +150,14 @@ class ImageCanvas:
                                     int(x2 / self.scale), int(y2 / self.scale)))
 
             imagetk = ImageTk.PhotoImage(image.resize((int(x2 - x1), int(y2 - y1)), self.filter))
-            imageid = self.canvas.create_image(max(box_canvas[0], box_img_int[0]),
+            
+            if self.imageid:
+                self.canvas.delete(self.imageid) # Deleting previous image
+
+            self.imageid = self.canvas.create_image(max(box_canvas[0], box_img_int[0]),
                                                max(box_canvas[1], box_img_int[1]),
                                                anchor='nw', image=imagetk)
-            self.canvas.lower(imageid)  # set image into background
+            self.canvas.lower(self.imageid)  # set image into background
             self.canvas.imagetk = imagetk  # keep an extra reference to prevent garbage-collection
         
     def redraw_figures(self):
@@ -386,9 +258,10 @@ class ImageCanvas:
         self.canvas.scale('all', x, y, scale, scale)  # rescale all objects
 
         # Redraw some figures before showing image on the screen
-        self.redraw_figures()  # method for child classes
+        # self.redraw_figures()  # method for child classes
         self.show_image() # Displaying image
-        self.draw_point_prompts() # Redrawing point prompts
+
+        # self.draw_point_prompts() # Redrawing point prompts
 
     def crop(self, bbox):
         """Crop rectangle from the image and return it."""

@@ -12,7 +12,7 @@ Notes:
 
 class Prompt:
     """Class representing point prompts on image."""
-    def __init__(self, image_file, prompt_coords, is_pos, ):#, aip_id) -> None:
+    def __init__(self, image_file, prompt_coords, is_pos, canvas_oval_id):#, aip_id) -> None:
         """Initializes new prompt object.
         
         Args: 
@@ -23,7 +23,7 @@ class Prompt:
         self.image_file = image_file # File path to image
         self.__is_pos = is_pos # Boolean representing whether prompt is positive
         self.__prompt_coords = prompt_coords # Coordinates of prompt on image
-        self.__canvas_oval_id = None #
+        self.__canvas_oval_id = canvas_oval_id # ID associated to oval on image canvas
 
         self.__prompt_id = uuid.uuid4() # Generating unique prompt id (aka primary key)
         # self.aip_id = aip_id # Non-unique aiptasia ID
