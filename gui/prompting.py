@@ -24,7 +24,7 @@ class Prompting(ImageCanvas):
 
         # Undoing/redoing
         self.canvas.bind('<Control-z>', self.undo)
-        self.canvas.bind('<Control-Shift-KeyPress-z>', self.redo)
+        self.canvas.bind('<Control-Shift-Z>', self.redo)
 
     ### Prompting
     def place_new_prompt(self, event) -> None:
@@ -149,14 +149,20 @@ class Prompting(ImageCanvas):
 
     def redo(self, event) -> None:
         """Performs Redo operation."""
-        print("Redo triggered")
         # If redo stack is empty, do nothing
         if not self.redo_stack: return
 
-        prev_prompt = self.redo_stack.pop() # Previously undone prompt
+        prev_prompt = self.redo_stack.pop() # Getting previously undone prompt
 
-        self.prompts
+        # Updating aiptasia ID and setting in Prompt object
+        if prev_prompt.get_is_pos():
+            self.aip_id += 1
+        prev_prompt.set_aip_id(self.aip_id)
 
+        self.prompts.append(prev_prompt) # Appending to prompts list
+
+        self.redraw_prompts() # Redrawing Prompts on canvas
+        self.undo_stack.append(prev_prompt) # Appending to undo stack
 
     ### Baseclass overridings
     def wheel(self, event) -> None:

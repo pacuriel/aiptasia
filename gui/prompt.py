@@ -44,11 +44,9 @@ class Prompt:
     def get_canvas_oval_id(self):
         return self.__canvas_oval_id
 
-    def __set_aip_id(self) -> uuid.UUID:
-        """Sets aiptasia id if it doesn't have one yet.
-        
-        Returns:
-            Unique identifier for aiptasia object."""
+    def set_aip_id(self, aip_id) -> None:
+        """Sets (or updates) aiptasia ID."""
+        self.__aip_id = aip_id
 
     def get_aid_id(self) -> int:
         return self.__aip_id
