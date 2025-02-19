@@ -12,7 +12,7 @@ Notes:
 
 class Prompt:
     """Class representing point prompts on image."""
-    def __init__(self, image_file, prompt_coords, is_pos, canvas_oval_id):#, aip_id) -> None:
+    def __init__(self, image_file, prompt_coords, is_pos, canvas_oval_id, aip_id) -> None:
         """Initializes new prompt object.
         
         Args: 
@@ -21,17 +21,11 @@ class Prompt:
             y: y-coordinate of prompt on image
         """
         self.image_file = image_file # File path to image
-        self.__is_pos = is_pos # Boolean representing whether prompt is positive
         self.__prompt_coords = prompt_coords # Coordinates of prompt on image
+        self.__is_pos = is_pos # Boolean representing whether prompt is positive
         self.__canvas_oval_id = canvas_oval_id # ID associated to oval on image canvas
-
+        self.__aip_id = aip_id
         self.__prompt_id = uuid.uuid4() # Generating unique prompt id (aka primary key)
-        # self.aip_id = aip_id # Non-unique aiptasia ID
-        ### Find way to set aip id in this class
-        # self.aip_id = self.__set_aip_id()
-
-        # Place new prompt on canvas at event location
-        # self.place_prompt(event, canvas) 
 
     ### Setter and getter functions
     def get_prompt_id(self):
@@ -56,6 +50,9 @@ class Prompt:
         Returns:
             Unique identifier for aiptasia object."""
 
+    def get_aid_id(self) -> int:
+        return self.__aip_id
+    
     ### Utility/helper functions
     def store_prompt(self) -> None:
         """Stores prompt details in CSV file."""

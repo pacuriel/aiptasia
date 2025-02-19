@@ -11,7 +11,9 @@ class Prompting(ImageCanvas):
 
         # Setting prompting related variables
         self.prompts = [] # List of user prompts
-        
+        self.aip_id = 0 # ID of current aiptasia being prompted (updates every positive prompt)
+        ### Find a better way to set aiptasia ID ^
+
         self.__bind_events() # Binding events relevant to prompting
         
     def __bind_events(self) -> None:
@@ -31,7 +33,7 @@ class Prompting(ImageCanvas):
         x_canvas = self.canvas.canvasx(event.x)
         y_canvas = self.canvas.canvasy(event.y)
 
-        # Do nothing if outside of image region
+        # Do nothing if curosr is outside of image region
         if self.outside(x_canvas, y_canvas):
             return
 
@@ -43,16 +45,19 @@ class Prompting(ImageCanvas):
         is_pos, color = (True, "green") if event.num == 1 else (False, "red") # Storing prompt type and color
         ### this ^ line is very satisfying. thanks python
 
+        promtp_coords = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
         canvas_oval_id = self.draw_point(x_canvas, y_canvas, color=color) # Drawing prompt on canvas
 
-        x_image, y_image = self.canvas_to_image_coords(x_canvas, y_canvas) # Obtain image coordinates
+        # Updating aiptasia ID
+        if self.prompts and is_pos: # Prompts exist and current prompt is positive
+            self.aip_id += 1
 
-        # Creating new prompt object
+        # Creating new prompt object and appending to Prompt stack
         new_prompt = Prompt(image_file=self.image_file,
-                            prompt_coords=(x_image, y_image),
+                            prompt_coords=promtp_coords,
                             is_pos=is_pos,
-                            canvas_oval_id=canvas_oval_id)
-
+                            canvas_oval_id=canvas_oval_id,
+                            aip_id=self.aip_id)
         self.prompts.append(new_prompt)
 
         # Appending to undo stack and clearing redo stack
@@ -126,21 +131,32 @@ class Prompting(ImageCanvas):
     ### Undo and redo functionality
     def undo(self, event):
         """Performs Undo operation."""
-        print("Undo triggered")
-        if not self.undo_stack: # If stack is empty
-            return
+        # If undo stack is empty, do nothing
+        if not self.undo_stack: return
         
-        last_event = self.undo_stack.pop() # Getting last event
-        ### Remove prompt here
-        canvas_oval_id = last_event.get_canvas_oval_id() # Getting oval ID
+        prev_prompt = self.undo_stack.pop() # Getting last event
+
+        # Removing prompt
+        canvas_oval_id = prev_prompt.get_canvas_oval_id() # Getting oval ID
         self.canvas.delete(canvas_oval_id) # Deleting prompt from canvas
 
-        self.redo_stack.append(last_event) # Appending to redo stack
+        self.redo_stack.append(prev_prompt) # Appending to redo stack
+        self.prompts.pop() # Removing from prompts list
+        
+        # Updating aiptasia ID
+        if self.aip_id > 0 and prev_prompt.get_is_pos():
+            self.aip_id -= 1
 
     def redo(self, event) -> None:
         """Performs Redo operation."""
         print("Redo triggered")
-        return
+        # If redo stack is empty, do nothing
+        if not self.redo_stack: return
+
+        prev_prompt = self.redo_stack.pop() # Previously undone prompt
+
+        self.prompts
+
 
     ### Baseclass overridings
     def wheel(self, event) -> None:

@@ -30,14 +30,15 @@ class MainFrame(ttk.Frame):
         
         self.__setup_main_window() # Setting up main window
         self.__create_widgets() # Creating application widgets
-        self.__run_mode() # Running mode selected at startup
+        self.__set_mode() # Ask user to set application mode
+        self.__run_mode() # Running mode selected by user
 
-    def __setup_main_window(self):
+    def __setup_main_window(self) -> None:
         # Setting application/window title
         self.__application_title = "Aiptasia image viewer app v" + str(self.master.get_version_number()) 
         self.master.title(self.__application_title) 
 
-    def __create_widgets(self):
+    def __create_widgets(self) -> None:
         """Creates main window and frame widgets."""
         # Dictionary with links to helper functions for MenuBar
         self.menu_funcs = { 
@@ -49,31 +50,35 @@ class MainFrame(ttk.Frame):
         self.__menu_bar = MenuBar(master=self.master, helper_funcs=self.menu_funcs)
         self.master.configure(menu=self.__menu_bar)
 
-        # Ask user to set mode
-        self.__set_mode()
-
     def __set_mode(self) -> None:
         """Sets application mode. (Planned) Options: Prompting, Editing, Predicting."""
-        self.mode = None
+        self.mode = None # Initializing main window
 
+        # Toplevel window for user to set 
         mode_window = tk.Toplevel(self.master)
         mode_window.title("Application Mode Selection")
         mode_window.geometry(f"400x200+{self.master.winfo_screenwidth() // 2}+{self.master.winfo_screenheight() // 2}")
-        mode_window.transient(self.master)
-        mode_window.grab_set()
+        mode_window.transient(self.master) # Ensures toplevel stays above root
+        mode_window.grab_set() # Directing application attention to toplevel window
 
+        # Message label on Toplevel window
         message = "Please select an application mode"
         tk.Label(master=mode_window, text=message).pack(pady=10)
 
+        # Buttons for each application mode
         prompting_button = tk.Button(master=mode_window, text="Prompting", command=lambda: self.__set_prompting_mode(mode_window))
         editing_button = tk.Button(master=mode_window, text="Editing", command=lambda: self.__set_editing_mode(mode_window))
         prediction_button = tk.Button(master=mode_window, text="Prediction", command=lambda: self.__set_prediction_mode(mode_window))
+        prompting_button.pack(pady=5); editing_button.pack(pady=5); prediction_button.pack(pady=5); # Placing buttons
+        
+        self.master.wait_window(mode_window) # Main window waits until mode is selected
+        
+        # Checking if mode was set
+        if self.mode is None:
+            self.__set_mode()
 
-        prompting_button.pack(pady=5); editing_button.pack(pady=5); prediction_button.pack(pady=5); 
-    
-        self.master.wait_window(mode_window)
-
-        self.__application_title += f" - Mode={self.mode}"
+        # Updating main window title
+        self.__application_title += f" - Mode={self.mode}" 
         self.master.title(self.__application_title)
 
     def __set_prompting_mode(self, mode_window: tk.Toplevel) -> None:
@@ -92,7 +97,7 @@ class MainFrame(ttk.Frame):
         mode_window.destroy()
         sys.exit(1)
 
-    def __run_mode(self):
+    def __run_mode(self) -> None:
         """Running selected application mode."""
         if self.mode == "prompting":
             self.__prompting_mode() # Running prompting mode
@@ -136,7 +141,6 @@ class MainFrame(ttk.Frame):
 
         self.__img_frame = Prompting(master=self, image_file=image_path)
         self.__img_frame.grid()
-        # breakpoint()
 
     def __set_image(self, image_path) -> None:
         """Sets a newly selected image and closes previously opened image.
@@ -151,7 +155,7 @@ class MainFrame(ttk.Frame):
 
         # Creating and displaying image frame object
         # self.__img_frame = ImageCanvas(master=self, image_file=image_path)
-        # self.__img_frame.grid() ### Sanity check
+        # self.__img_frame.grid()
     
     def __close_image(self) -> None:
         """Closes previously opened image."""
