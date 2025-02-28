@@ -1,5 +1,5 @@
 import pandas as pd
-
+import os 
 from image_canvas import ImageCanvas
 from prompt import Prompt
 
@@ -16,11 +16,21 @@ class Prompting(ImageCanvas):
 
         self.prompt_csv_path = ".\\temp_log\\prompting.csv" # Path to prompting csv file
 
-        self.__check_prompt_csv()
+        self.__check_prompt_csv(image_file)
 
         self.__bind_events() # Binding events relevant to prompting
     
-    def __check_prompt_csv(self):
+    def __check_prompt_csv(self, image_file):
+        # Creating prompt csv ### Fix this later
+        log_dir = "temp_log"
+        basename = os.path.splitext(self.image_file)[0]
+        self.prompt_csv_path = os.path.join(log_dir, f"{basename}_prompts.csv")
+
+        # Checking if file exists and creating if not
+        if not os.path.exists(self.prompt_csv_path):
+            with open(self.prompt_csv_path, 'w') as csv:
+                csv.write("file_name,prompt_id,point_x,point_y,is_pos,aip_id,canvas_oval_id\n")
+
         self.prompt_data = pd.read_csv(self.prompt_csv_path, header=0)
         if self.prompt_data.empty: return
         ### Load in previously prompted file here

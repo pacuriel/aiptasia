@@ -9,3 +9,11 @@ experiments
 *.stderr
 carvana_test
 manual_image_annotator
+*_masks.npy
+*.npy
+*prompts.csv
+prompting.csv
+*.log
+scratch
+unet_test.py
+unet_*.ipynb
