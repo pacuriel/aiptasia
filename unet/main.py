@@ -58,7 +58,7 @@ def main():
 
     test_set = ImageDataset(image_dir=test_img_dir, mask_dir=test_mask_dir)
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
-    breakpoint()
+    # breakpoint()
     model = UNet(in_channels=in_channels, out_channels=out_channels).to(device) #U-Net model
 
     if train_mode: model.train() #setting model to train mode
