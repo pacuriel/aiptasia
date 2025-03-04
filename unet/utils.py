@@ -103,7 +103,7 @@ def tileImage(img: np.ndarray, tile_size: int = 256, save_tiles: bool = False, t
 
             if save_tiles:
                 if np.max(tile) == 1: tile = 255*tile #converting from continuous to discrete
-                cv2.imwrite(tile_dir[:-4] + f"_{i}" + ".jpg", tile)
+                cv2.imwrite(tile_dir[:-4] + f"_{i}" + ".png", tile)
             
             i += 1
     

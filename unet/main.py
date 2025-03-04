@@ -11,7 +11,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 # from unet_OG import UNet #importing OG U-Net Model
-from unet_padded import UNet
+from models.unet_padded import UNet
 from data import ImageDataset #dataset class
 from train import Train
 
@@ -28,7 +28,7 @@ learning_rate = 1e-3 #learning rate used by optimizer
 batch_size = 16 #size of each batch to train on
 num_epochs = 20 #number of epochs (full passes over training data) to train for 
 
-TILE_SIZE = 512
+TILE_SIZE = 256
 
 ###Note: sample initial weigths from a Gaussian distribution w/ std_dev = sqrt(2 / N), where N = # incoming nodes (per last paragraph of section 3) 
 
@@ -36,7 +36,8 @@ TILE_SIZE = 512
 def storeDirs(input_size: int = None, output_size: int = None) -> tuple[str, str]:
     #storing image and mask directories
     if platform.system() == "Linux":
-        root_dir = "/home/pcuriel/data/aiptasia/image_data/carvana_data/full_dataset/"
+        # root_dir = "/home/pcuriel/data/aiptasia/image_data/carvana_data/full_dataset/"
+        root_dir = "/home/pcuriel/data/aiptasia/image_data/steve_data/"
         train_img_dir = root_dir + "train_images/" + f"tiles_{TILE_SIZE}"
         train_mask_dir = root_dir + "train_masks/" + f"tiles_{TILE_SIZE}"
         test_img_dir = root_dir + "test_images/" + f"tiles_{TILE_SIZE}"
@@ -57,7 +58,7 @@ def main():
 
     test_set = ImageDataset(image_dir=test_img_dir, mask_dir=test_mask_dir)
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
-
+    breakpoint()
     model = UNet(in_channels=in_channels, out_channels=out_channels).to(device) #U-Net model
 
     if train_mode: model.train() #setting model to train mode
