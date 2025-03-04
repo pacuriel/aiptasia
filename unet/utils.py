@@ -120,7 +120,7 @@ def padImage(img: np.ndarray, tile_size: int = 256) -> np.ndarray:
     W_pad = 0
     if W % tile_size != 0:
         W_pad = (tile_size*math.ceil(W / tile_size) - W) // 2
-
+    
     if H_pad != 0 or W_pad != 0:
         img = cv2.copyMakeBorder(src=img, top=H_pad, bottom=H_pad, left=W_pad, right=W_pad, borderType=cv2.BORDER_REFLECT)
 
@@ -145,7 +145,6 @@ def stitchTiles(tiles: list[np.ndarray], img_shape: tuple[int], overlap: bool = 
     tiles_W = math.ceil(W / tile_size)
 
     tile_idx = 0 #used to index tiles below
-
     #looping over height of image (rows)
     for i in range(tiles_H):
         #looping over width of image (cols)

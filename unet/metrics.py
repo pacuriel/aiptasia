@@ -72,19 +72,19 @@ class Metrics:
 
 def main():
     #pred/gt directories
-    pred_mask_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/mask_images"
-    gt_mask_dir = "/home/pcuriel/data/aiptasia/image_data/carvana_data/full_dataset/test_masks"
+    pred_mask_dir = "/home/pcuriel/data/aiptasia/code/unet/experiments/04-Mar-2025_1104_09/mask_images"
+    gt_mask_dir = "/home/pcuriel/data/aiptasia/image_data/steve_data/test_masks"
     
     #directory to save figures w/ metrics
-    metrics_mask_dir = "/home/pcuriel/data/aiptasia/code/unet/carvana_test/experiments/04-Nov-2024_1605_03/metrics_masks"
+    metrics_mask_dir = "/home/pcuriel/data/aiptasia/code/unet/experiments/04-Mar-2025_1104_09/metrics_masks"
     os.makedirs(metrics_mask_dir, exist_ok=True)
 
     avg_metrics = {"iou": 0, "dice": 0, "sensitivity": 0, "specificity": 0, "precision": 0, "accuracy": 0}
 
     for i, pred_mask_file in enumerate(tqdm(os.listdir(pred_mask_dir))):
-        pred_base_name = pred_mask_file.split(".")[0]
+        pred_base_name = os.path.splitext(pred_mask_file)[0]
 
-        gt_mask_name = pred_base_name + "_mask.gif"
+        gt_mask_name = pred_mask_file
 
         #loading gt mask
         # gt_mask = np.array(Image.open(os.path.join(gt_mask_dir, os.listdir(gt_mask_dir)[i])).convert("L"), dtype=np.uint8)
@@ -103,12 +103,15 @@ def main():
         
         #sanity check
         if iou < 0.6:
-            breakpoint()
+            # breakpoint()
+            pass
 
         #plotting pred masks with metrics 
         metric_text = f"IOU = %.2f\nDice = %.2f\nSensitivity = %.2f\nSpecificity = %.2f\nPrecision = %.2f\nAccuracy = %.2f" % (iou, dice, sensitivity, specificity, precision, accuracy)
-        plt.imshow(pred_mask)
-        plt.text(-1200, 1000, metric_text, fontsize=14)
+        plt.figure(figsize=(8, 4.5))
+        breakpoint()
+        plt.imshow(pred_mask, cmap="binary_r")
+        plt.text(-1000, 1000, metric_text, fontsize=14)
         plt.subplots_adjust(left=0.35)
         plt.title(pred_base_name)
         plt.savefig(os.path.join(metrics_mask_dir, pred_base_name + "_metrics.png"))
@@ -122,6 +125,7 @@ def main():
         avg_metrics["precision"] += precision
         avg_metrics["accuracy"] += accuracy
 
+    print(f"N_test = {len(os.listdir(pred_mask_dir))} images")
     #averaging the metrics over the number of files
     for metric in avg_metrics:
         avg_metrics[metric] /= len(os.listdir(pred_mask_dir))
